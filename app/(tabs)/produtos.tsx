@@ -10,8 +10,9 @@ import {
   Platform, 
   ScrollView 
 } from "react-native";
-import { Plus, Package, AlertTriangle, X } from "lucide-react-native";
+import { Plus, Package, AlertTriangle, X, Edit } from "lucide-react-native";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
+import Toast from "react-native-toast-message";
 
 interface Product {
   id: string;
@@ -25,6 +26,8 @@ interface Product {
 export default function Products() {
   const [products, setProducts] = useLocalStorage<Product[]>("products", []);
   const [showModal, setShowModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -33,19 +36,67 @@ export default function Products() {
     criticalStock: "5",
   });
 
+  const handleEditProduct = (product: Product) => {
+    setFormData({
+      name: product.name,
+      price: product.price.toString(),
+      stock: product.stock.toString(),
+      barcode: product.barcode || "",
+      criticalStock: product.criticalStock.toString(),
+    });
+    setEditingProductId(product.id);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setFormData({ name: "", price: "", stock: "", barcode: "", criticalStock: "5" });
+    setEditingProductId(null);
+  };
+
   const handleSubmit = () => {
     if (!formData.name.trim() || !formData.price || !formData.stock) return;
 
-    const newProduct: Product = {
-      id: Date.now().toString(),
-      name: formData.name,
-      price: parseFloat(formData.price),
-      stock: parseInt(formData.stock),
-      barcode: formData.barcode,
-      criticalStock: parseInt(formData.criticalStock || "5"),
-    };
-    setProducts([...products, newProduct]);
+    if (editingProductId) {
+      // Update product
+      const updatedProducts = products.map((p) =>
+        p.id === editingProductId
+          ? {
+              ...p,
+              name: formData.name.trim(),
+              price: parseFloat(formData.price),
+              stock: parseInt(formData.stock),
+              barcode: formData.barcode.trim(),
+              criticalStock: parseInt(formData.criticalStock || "5"),
+            }
+          : p
+      );
+      setProducts(updatedProducts);
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso',
+        text2: 'Produto atualizado com sucesso!'
+      });
+    } else {
+      // Create product
+      const newProduct: Product = {
+        id: Date.now().toString(),
+        name: formData.name.trim(),
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock),
+        barcode: formData.barcode.trim(),
+        criticalStock: parseInt(formData.criticalStock || "5"),
+      };
+      setProducts([...products, newProduct]);
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso',
+        text2: 'Produto cadastrado com sucesso!'
+      });
+    }
+
     setFormData({ name: "", price: "", stock: "", barcode: "", criticalStock: "5" });
+    setEditingProductId(null);
     setShowModal(false);
   };
 
@@ -71,14 +122,23 @@ export default function Products() {
             <View className="bg-card rounded-2xl p-5 border border-border/80 shadow-sm mb-3">
               <View className="flex-row items-start justify-between gap-4">
                 <View className="flex-1 min-w-0">
-                  <View className="flex-row items-center gap-2 flex-wrap">
-                    <Text className="text-base font-bold text-foreground leading-5">{product.name}</Text>
-                    {isLowStock && (
-                      <View className="bg-destructive/10 px-2 py-0.5 rounded-lg flex-row items-center gap-1">
-                        <AlertTriangle className="text-destructive" size={11} />
-                        <Text className="text-[10px] text-destructive font-bold uppercase tracking-wider">Estoque Crítico</Text>
-                      </View>
-                    )}
+                  <View className="flex-row items-center justify-between gap-2 flex-wrap mb-2">
+                    <View className="flex-row items-center gap-2 flex-wrap flex-1">
+                      <Text className="text-base font-bold text-foreground leading-5">{product.name}</Text>
+                      {isLowStock && (
+                        <View className="bg-destructive/10 px-2 py-0.5 rounded-lg flex-row items-center gap-1">
+                          <AlertTriangle className="text-destructive" size={11} />
+                          <Text className="text-[10px] text-destructive font-bold uppercase tracking-wider">Estoque Crítico</Text>
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleEditProduct(product)}
+                      activeOpacity={0.7}
+                      className="p-1.5 bg-muted/30 rounded-lg"
+                    >
+                      <Edit className="text-muted-foreground" size={14} />
+                    </TouchableOpacity>
                   </View>
 
                   <View className="flex-row items-center gap-6 mt-3">
@@ -124,7 +184,7 @@ export default function Products() {
         visible={showModal}
         animationType="slide"
         transparent={true}
-        onRequestClose={() => setShowModal(false)}
+        onRequestClose={handleCloseModal}
       >
         <View className="flex-1 justify-end bg-black/60">
           <KeyboardAvoidingView 
@@ -135,9 +195,11 @@ export default function Products() {
               <View className="w-12 h-1 bg-muted rounded-full self-center mb-5 opacity-60" />
 
               <View className="flex-row items-center justify-between mb-5">
-                <Text className="text-lg font-bold text-foreground">Novo Produto</Text>
+                <Text className="text-lg font-bold text-foreground">
+                  {editingProductId ? "Editar Produto" : "Novo Produto"}
+                </Text>
                 <TouchableOpacity
-                  onPress={() => setShowModal(false)}
+                  onPress={handleCloseModal}
                   activeOpacity={0.7}
                   className="p-1.5 bg-muted/40 rounded-full"
                 >
@@ -216,7 +278,9 @@ export default function Products() {
                   formData.name.trim() && formData.price && formData.stock ? "bg-primary" : "bg-muted/80 opacity-50"
                 }`}
               >
-                <Text className="text-primary-foreground font-semibold text-base">Cadastrar Produto</Text>
+                <Text className="text-primary-foreground font-semibold text-base">
+                  {editingProductId ? "Salvar Alterações" : "Cadastrar Produto"}
+                </Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>

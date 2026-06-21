@@ -10,7 +10,7 @@ import {
   Platform, 
   ScrollView 
 } from "react-native";
-import { Plus, Search, User, Phone, Mail, MapPin, X } from "lucide-react-native";
+import { Plus, Search, User, Phone, Mail, MapPin, X, Edit } from "lucide-react-native";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Toast from "react-native-toast-message";
 
@@ -87,6 +87,8 @@ export default function Clients() {
   const [clients, setClients] = useLocalStorage<Client[]>("clients", []);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -106,10 +108,23 @@ export default function Clients() {
     client.name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const handleEditClient = (client: Client) => {
+    setFormData({
+      name: client.name,
+      phone: client.phone,
+      email: client.email,
+      address: client.address,
+      cpf: client.cpf,
+    });
+    setEditingClientId(client.id);
+    setShowModal(true);
+  };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setFormData({ name: "", phone: "", email: "", address: "", cpf: "" });
     setErrors({ name: "", cpf: "", phone: "", email: "" });
+    setEditingClientId(null);
   };
 
   const handleSubmit = () => {
@@ -138,7 +153,10 @@ export default function Clients() {
         hasError = true;
       } else {
         const exists = clients.some(
-          (client) => client.cpf && client.cpf.replace(/\D/g, "") === cpfDigits
+          (client) => 
+            client.id !== editingClientId && // Ignore own customer on edit mode
+            client.cpf && 
+            client.cpf.replace(/\D/g, "") === cpfDigits
         );
         if (exists) {
           newErrors.cpf = "CPF já cadastrado";
@@ -172,25 +190,47 @@ export default function Clients() {
       return;
     }
 
-    const newClient: Client = {
-      id: Date.now().toString(),
-      name: cleanName,
-      phone: cleanPhone,
-      email: cleanEmail,
-      address: formData.address.trim(),
-      cpf: cleanCPF,
-    };
+    if (editingClientId) {
+      // Update existing client
+      const updatedClients = clients.map((c) =>
+        c.id === editingClientId
+          ? {
+              ...c,
+              name: cleanName,
+              phone: cleanPhone,
+              email: cleanEmail,
+              address: formData.address.trim(),
+            }
+          : c
+      );
+      setClients(updatedClients);
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso',
+        text2: 'Cliente atualizado com sucesso!'
+      });
+    } else {
+      // Create new client
+      const newClient: Client = {
+        id: Date.now().toString(),
+        name: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
+        address: formData.address.trim(),
+        cpf: cleanCPF,
+      };
+      setClients([...clients, newClient]);
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso',
+        text2: 'Cliente cadastrado com sucesso!'
+      });
+    }
 
-    setClients([...clients, newClient]);
     setFormData({ name: "", phone: "", email: "", address: "", cpf: "" });
     setErrors({ name: "", cpf: "", phone: "", email: "" });
+    setEditingClientId(null);
     setShowModal(false);
-
-    Toast.show({
-      type: 'success',
-      text1: 'Sucesso',
-      text2: 'Cliente cadastrado com sucesso!'
-    });
   };
 
   return (
@@ -226,7 +266,16 @@ export default function Clients() {
                 <User className="text-primary" size={20} />
               </View>
               <View className="flex-1 min-w-0">
-                <Text className="text-base font-bold text-foreground truncate">{client.name}</Text>
+                <View className="flex-row justify-between items-start">
+                  <Text className="text-base font-bold text-foreground flex-1 pr-2 truncate">{client.name}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleEditClient(client)}
+                    activeOpacity={0.7}
+                    className="p-1.5 bg-muted/30 rounded-lg"
+                  >
+                    <Edit className="text-muted-foreground" size={14} />
+                  </TouchableOpacity>
+                </View>
                 {!!client.cpf && (
                   <Text className="text-xs text-muted-foreground/80 mt-1 font-semibold">CPF: {client.cpf}</Text>
                 )}
@@ -279,7 +328,9 @@ export default function Clients() {
               <View className="w-12 h-1 bg-muted rounded-full self-center mb-5 opacity-60" />
 
               <View className="flex-row items-center justify-between mb-5">
-                <Text className="text-lg font-bold text-foreground">Novo Cliente</Text>
+                <Text className="text-lg font-bold text-foreground">
+                  {editingClientId ? "Editar Cliente" : "Novo Cliente"}
+                </Text>
                 <TouchableOpacity
                   onPress={handleCloseModal}
                   activeOpacity={0.7}
@@ -330,9 +381,10 @@ export default function Clients() {
                       placeholder="000.000.000-00"
                       placeholderTextColor="#94a3b8"
                       keyboardType="numeric"
+                      editable={!editingClientId}
                       className={`px-4 py-3 bg-muted/30 text-foreground border rounded-xl text-sm font-mono ${
                         errors.cpf ? "border-destructive/80" : "border-border/80"
-                      }`}
+                      } ${editingClientId ? "opacity-60 bg-muted/50" : ""}`}
                     />
                   </View>
 
@@ -404,7 +456,9 @@ export default function Clients() {
                 activeOpacity={0.7}
                 className="w-full py-4 rounded-xl items-center justify-center bg-primary"
               >
-                <Text className="text-primary-foreground font-semibold text-base">Cadastrar Cliente</Text>
+                <Text className="text-primary-foreground font-semibold text-base">
+                  {editingClientId ? "Salvar Alterações" : "Cadastrar Cliente"}
+                </Text>
               </TouchableOpacity>
             </View>
           </KeyboardAvoidingView>
