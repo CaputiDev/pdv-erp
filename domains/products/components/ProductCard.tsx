@@ -30,7 +30,7 @@ export function ProductCard({ product, onEdit }: ProductCardProps) {
           </View>
           <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <Text className={`text-xs font-bold text-center ${isLowStock ? "text-destructive" : "text-muted-foreground/80"}`}>
-              {product.stock} un.
+              {product.stock} qtd
             </Text>
             {isLowStock && (
               <AlertTriangle className="text-destructive" size={12} />

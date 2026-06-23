@@ -28,16 +28,18 @@ export function useOrdersManager() {
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.clientName.toLowerCase().includes(historySearch.toLowerCase());
-    if (historyFilter === "pendente") {
-      return matchesSearch && order.status === "pendente";
-    }
-    if (historyFilter === "concluido") {
-      return matchesSearch && order.status === "concluido";
-    }
-    return matchesSearch;
-  });
+  const filteredOrders = orders
+    .filter((order) => {
+      const matchesSearch = order.clientName.toLowerCase().includes(historySearch.toLowerCase());
+      if (historyFilter === "pendente") {
+        return matchesSearch && order.status === "pendente";
+      }
+      if (historyFilter === "concluido") {
+        return matchesSearch && order.status === "concluido";
+      }
+      return matchesSearch;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   const addToCart = () => {
     if (!selectedProductId) {

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList } from "react-native";
+import { Search, XCircle, SearchX } from "lucide-react-native";
 import { BaseModal } from "../../../components/BaseModal";
 import { Client } from "../types";
 
@@ -30,27 +31,59 @@ export function ClientSelectionModal({ visible, onClose, clients, onSelect }: Cl
 
   return (
     <BaseModal visible={visible} onClose={handleClose} title="Selecionar Cliente">
-      {/* Inline search filter */}
-      <View className="flex-row items-center bg-muted/30 border border-border/80 rounded-xl px-3 py-2 mb-3">
+      
+      {/* Search Input Melhorado */}
+      <View className="flex-row items-center bg-muted/40 border border-border/80 rounded-2xl px-4 py-3 mb-4">
+        <Search size={18} className="text-muted-foreground mr-2" />
         <TextInput
           placeholder="Buscar por nome..."
           placeholderTextColor="#94a3b8"
           value={search}
           onChangeText={setSearch}
-          className="flex-1 text-foreground text-sm py-0.5"
+          className="flex-1 text-foreground text-sm font-medium"
         />
+        {search.length > 0 && (
+          <TouchableOpacity onPress={() => setSearch("")} activeOpacity={0.7} className="p-1">
+            <XCircle size={18} className="text-muted-foreground" />
+          </TouchableOpacity>
+        )}
       </View>
 
+      {/* Lista de Clientes */}
       <FlatList
         data={filtered}
         keyExtractor={(client) => client.id}
-        ListEmptyComponent={<Text className="text-muted-foreground text-center py-6 text-sm">Nenhum cliente cadastrado</Text>}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        // Empty State Melhorado
+        ListEmptyComponent={
+          <View className="items-center justify-center py-10">
+            <SearchX size={40} className="text-muted-foreground/50 mb-3" />
+            <Text className="text-sm font-bold text-foreground">
+              {search.length > 0 ? "Nenhum resultado" : "Nenhum cliente"}
+            </Text>
+            <Text className="text-xs text-muted-foreground mt-1 text-center">
+              {search.length > 0 
+                ? `Não encontramos "${search}"` 
+                : "Não há clientes cadastrados."}
+            </Text>
+          </View>
+        }
+        // Itens da Lista Melhorados (Cards)
         renderItem={({ item: client }) => (
           <TouchableOpacity
             onPress={() => handleSelect(client.id)}
-            className="py-3 border-b border-border/60"
+            activeOpacity={0.7}
+            className="flex-row items-center p-3 mb-2 bg-card border border-border/50 rounded-2xl"
           >
-            <Text className="text-sm font-semibold text-foreground">{client.name}</Text>
+            <View className="flex-1 pr-2">
+              <Text className="text-sm font-bold text-foreground" numberOfLines={1}>
+                {client.name}
+              </Text>
+              <Text className="text-xs text-muted-foreground mt-0.5">
+                <Text className="font-medium text-foreground">{client.cpf || "Não informado"}</Text>
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       />

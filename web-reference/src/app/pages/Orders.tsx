@@ -199,7 +199,7 @@ export default function Orders() {
               value={quantity}
               onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
               className="w-24 px-4 py-3 bg-input-background rounded-lg border border-border text-center"
-              placeholder="Qtd"
+              placeholder="qtd"
             />
             <button
               onClick={addToCart}

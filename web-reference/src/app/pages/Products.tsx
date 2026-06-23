@@ -75,7 +75,7 @@ export default function Products() {
                       <div>
                         <p className="text-xs text-muted-foreground">Estoque</p>
                         <p className={isLowStock ? "text-destructive" : ""}>
-                          {product.stock} un.
+                          {product.stock} qtd
                         </p>
                       </div>
                     </div>
