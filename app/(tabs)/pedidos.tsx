@@ -53,7 +53,7 @@ export default function Orders() {
   } = useOrdersManager();
 
   return (
-    <View className="flex-1 bg-background relative">
+    <View className="flex-1 bg-background">
       {/* TAB SWITCHER */}
       <View className="flex-row mx-4 mt-4 bg-muted/40 p-1 rounded-2xl border border-border/80">
         {(["novo", "historico"] as const).map((tab) => (
@@ -71,40 +71,29 @@ export default function Orders() {
       </View>
 
       {activeTab === "novo" ? (
-        <View className="flex-1 relative">
-          <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 220, gap: 20 }}>
-            {/* CLIENT SELECTOR */}
-            <ClientSelector 
-              selectedClient={selectedClient} 
-              onPress={() => setShowClientModal(true)} 
-            />
-
-            {/* ADD PRODUCT SECTION */}
-            <AddProductSection 
-              selectedProduct={selectedProduct}
-              onPressSelect={() => setShowProductModal(true)}
-              quantity={quantity}
-              onChangeQuantity={setQuantity}
-              onAdd={addToCart}
-            />
-
-            {/* SHOPPING CART */}
-            <CartList 
-              cart={cart}
-              onRemove={removeFromCart}
-              onUpdateQuantity={updateQuantity}
-            />
-          </ScrollView>
-
-          {/* FOOTER CHECKOUT */}
-          <CheckoutFooter 
-            status={status}
-            onChangeStatus={setStatus}
-            total={total}
-            onFinalize={finalizeOrder}
-            disabled={cart.length === 0 || !selectedClientId}
+        <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 220, gap: 20 }}>
+          {/* CLIENT SELECTOR */}
+          <ClientSelector 
+            selectedClient={selectedClient} 
+            onPress={() => setShowClientModal(true)} 
           />
-        </View>
+
+          {/* ADD PRODUCT SECTION */}
+          <AddProductSection 
+            selectedProduct={selectedProduct}
+            onPressSelect={() => setShowProductModal(true)}
+            quantity={quantity}
+            onChangeQuantity={setQuantity}
+            onAdd={addToCart}
+          />
+
+          {/* SHOPPING CART */}
+          <CartList 
+            cart={cart}
+            onRemove={removeFromCart}
+            onUpdateQuantity={updateQuantity}
+          />
+        </ScrollView>
       ) : (
         /* ORDER HISTORY LIST */
         <View className="flex-1 px-4 pt-4">
@@ -139,6 +128,17 @@ export default function Orders() {
             )}
           />
         </View>
+      )}
+
+      {/* FOOTER CHECKOUT */}
+      {activeTab === "novo" && (
+        <CheckoutFooter 
+          status={status}
+          onChangeStatus={setStatus}
+          total={total}
+          onFinalize={finalizeOrder}
+          disabled={cart.length === 0 || !selectedClientId}
+        />
       )}
 
       {/* SELECTION MODALS */}

@@ -23,7 +23,10 @@ export function CheckoutFooter({
   }).format(total);
 
   return (
-    <View className="absolute bottom-0 left-0 right-0 bg-card border-t border-border/80 shadow-2xl px-4 pt-3 pb-6">
+    <View 
+      style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}
+      className="bg-card border-t border-border/80 shadow-2xl px-4 pt-3 pb-6"
+    >
       <View className="max-w-md mx-auto w-full gap-3">
         {/* Row com Status e Total */}
         <View className="flex-row items-center justify-between gap-4">
