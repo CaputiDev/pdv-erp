@@ -16,7 +16,7 @@ import { ProductFormModal } from "../../domains/products/components/ProductFormM
 export default function Products() {
   const [products, setProducts] = useLocalStorage<Product[]>("products", []);
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState<"todos" | "critico">("todos");
+  const [filterType, setFilterType] = useState<"todos" | "critico" | "com_codigo">("todos");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -27,6 +27,9 @@ export default function Products() {
 
     if (filterType === "critico") {
       return matchesSearch && product.stock <= product.criticalStock;
+    }
+    if (filterType === "com_codigo") {
+      return matchesSearch && !!product.barcode && product.barcode.trim() !== "";
     }
     return matchesSearch;
   });
@@ -81,7 +84,8 @@ export default function Products() {
         placeholder="Buscar por nome ou código..."
         filters={[
           { key: "todos", label: "Todos" },
-          { key: "critico", label: "Estoque Crítico" }
+          { key: "critico", label: "Estoque Crítico" },
+          { key: "com_codigo", label: "Com Código" }
         ]}
         activeFilter={filterType}
         onFilterChange={setFilterType}

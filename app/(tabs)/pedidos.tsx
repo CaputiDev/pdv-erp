@@ -53,7 +53,7 @@ export default function Orders() {
   } = useOrdersManager();
 
   return (
-    <SafeAreaView className="flex-1 bg-background">
+    <View className="flex-1 bg-background relative">
       {/* TAB SWITCHER */}
       <View className="flex-row mx-4 mt-4 bg-muted/40 p-1 rounded-2xl border border-border/80">
         {(["novo", "historico"] as const).map((tab) => (
@@ -71,7 +71,7 @@ export default function Orders() {
       </View>
 
       {activeTab === "novo" ? (
-        <>
+        <View className="flex-1 relative">
           <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 220, gap: 20 }}>
             {/* CLIENT SELECTOR */}
             <ClientSelector 
@@ -104,7 +104,7 @@ export default function Orders() {
             onFinalize={finalizeOrder}
             disabled={cart.length === 0 || !selectedClientId}
           />
-        </>
+        </View>
       ) : (
         /* ORDER HISTORY LIST */
         <View className="flex-1 px-4 pt-4">
@@ -155,6 +155,6 @@ export default function Orders() {
         products={products}
         onSelect={(id) => setSelectedProductId(id)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
