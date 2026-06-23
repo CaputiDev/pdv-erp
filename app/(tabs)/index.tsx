@@ -3,11 +3,7 @@ import { router } from 'expo-router';
 import { DollarSign, Package, Users, ShoppingCart, TrendingUp } from 'lucide-react-native';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 
-interface Order {
-  id: string;
-  status: "pendente" | "concluido";
-  total: number;
-}
+import { Order } from '../../domains/orders/types';
 
 export default function Dashboard() {
   const [orders] = useLocalStorage<Order[]>("orders", []);

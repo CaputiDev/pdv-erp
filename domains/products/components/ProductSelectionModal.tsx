@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList } from "react-native";
-import { BaseModal } from "./BaseModal";
-
-export interface Product {
-  id: string;
-  name: string;
-  price: number;
-  stock: number;
-}
+import { BaseModal } from "../../../components/BaseModal";
+import { Product } from "../types";
 
 interface ProductSelectionModalProps {
   visible: boolean;

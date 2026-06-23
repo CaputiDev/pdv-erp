@@ -1,23 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Check, Trash2, ChevronDown, ChevronUp, Calendar } from "lucide-react-native";
-
-export interface CartItem {
-  productId: string;
-  productName: string;
-  price: number;
-  quantity: number;
-}
-
-export interface Order {
-  id: string;
-  clientId: string;
-  clientName: string;
-  items: CartItem[];
-  total: number;
-  status: "pendente" | "concluido";
-  date: string;
-}
+import { Order } from "../types";
 
 interface OrderCardProps {
   order: Order;

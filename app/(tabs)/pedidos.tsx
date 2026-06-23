@@ -12,16 +12,12 @@ import {
 import { Plus, Minus, ShoppingCart, Trash2, Check, ChevronDown } from "lucide-react-native";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Toast from "react-native-toast-message";
-import { OrderCard, Order } from "../../components/OrderCard";
-import { ClientSelectionModal, Client } from "../../components/ClientSelectionModal";
-import { ProductSelectionModal, Product } from "../../components/ProductSelectionModal";
-
-interface CartItem {
-  productId: string;
-  productName: string;
-  price: number;
-  quantity: number;
-}
+import { OrderCard } from "../../domains/orders/components/OrderCard";
+import { ClientSelectionModal } from "../../domains/clients/components/ClientSelectionModal";
+import { ProductSelectionModal } from "../../domains/products/components/ProductSelectionModal";
+import { Client } from "../../domains/clients/types";
+import { Product } from "../../domains/products/types";
+import { Order, CartItem } from "../../domains/orders/types";
 
 export default function Orders() {
   const [clients] = useLocalStorage<Client[]>("clients", []);

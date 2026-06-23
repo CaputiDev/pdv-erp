@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, FlatList } from "react-native";
-import { BaseModal } from "./BaseModal";
-
-export interface Client {
-  id: string;
-  name: string;
-}
+import { BaseModal } from "../../../components/BaseModal";
+import { Client } from "../types";
 
 interface ClientSelectionModalProps {
   visible: boolean;
