@@ -20,7 +20,7 @@ export function CheckoutFooter({
   return (
     <View className="absolute bottom-0 left-0 right-0 bg-card border-t border-border/80 shadow-2xl p-5">
       <View className="max-w-md mx-auto gap-4">
-        <View className="flex-row items-center justify-between">
+        <View className="flex-col gap-2">
           <Text className="text-sm font-semibold text-foreground">Status do Pedido:</Text>
           <View className="flex-row bg-muted/30 border border-border/80 rounded-2xl p-1">
             {(["pendente", "concluido"] as const).map((s) => (
@@ -28,7 +28,7 @@ export function CheckoutFooter({
                 key={s}
                 onPress={() => onChangeStatus(s)}
                 activeOpacity={0.7}
-                className={`px-4 py-2 rounded-xl shadow-sm ${status === s ? "bg-primary" : ""}`}
+                className={`flex-1 py-3 rounded-xl items-center justify-center ${status === s ? "bg-primary shadow-sm" : ""}`}
               >
                 <Text className={`text-xs font-bold ${status === s ? "text-primary-foreground" : "text-muted-foreground"}`}>
                   {s === "pendente" ? "Pendente" : "Concluído"}

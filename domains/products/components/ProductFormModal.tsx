@@ -76,6 +76,7 @@ export function ProductFormModal({
       <View className="flex-1 justify-end bg-black/60">
         <KeyboardAvoidingView 
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
         >
           <View className="bg-card rounded-t-[32px] p-6 max-h-[85vh] border-t border-border shadow-2xl">
             {/* Drag Handle Indicator */}

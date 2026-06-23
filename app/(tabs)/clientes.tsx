@@ -2,26 +2,43 @@ import { useState } from "react";
 import { 
   View, 
   Text, 
-  TextInput, 
   FlatList, 
   TouchableOpacity 
 } from "react-native";
-import { Plus, Search, User } from "lucide-react-native";
+import { Plus, User } from "lucide-react-native";
+import { SearchAndFilters } from "../../components/SearchAndFilters";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Toast from "react-native-toast-message";
 import { Client } from "../../domains/clients/types";
 import { ClientCard } from "../../domains/clients/components/ClientCard";
 import { ClientFormModal } from "../../domains/clients/components/ClientFormModal";
+import { ClientDetailsModal } from "../../domains/clients/components/ClientDetailsModal";
 
 export default function Clients() {
   const [clients, setClients] = useLocalStorage<Client[]>("clients", []);
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"todos" | "telefone" | "email" | "endereco">("todos");
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [selectedDetailClient, setSelectedDetailClient] = useState<Client | null>(null);
 
-  const filteredClients = clients.filter((client) =>
-    client.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredClients = clients.filter((client) => {
+    const matchesSearch =
+      client.name.toLowerCase().includes(search.toLowerCase()) ||
+      (client.cpf && client.cpf.replace(/\D/g, "").includes(search.replace(/\D/g, ""))) ||
+      (client.phone && client.phone.replace(/\D/g, "").includes(search.replace(/\D/g, "")));
+
+    if (filterType === "telefone") {
+      return matchesSearch && !!client.phone;
+    }
+    if (filterType === "email") {
+      return matchesSearch && !!client.email;
+    }
+    if (filterType === "endereco") {
+      return matchesSearch && !!client.address;
+    }
+    return matchesSearch;
+  });
 
   const handleEditClient = (client: Client) => {
     setEditingClient(client);
@@ -66,16 +83,19 @@ export default function Clients() {
 
   return (
     <View className="flex-1 bg-background p-4 relative">
-      <View className="flex-row items-center bg-card border border-border/80 rounded-2xl px-4 py-3 mb-4 shadow-sm">
-        <Search className="text-muted-foreground mr-2" size={18} />
-        <TextInput
-          placeholder="Buscar por nome..."
-          placeholderTextColor="#94a3b8"
-          value={search}
-          onChangeText={setSearch}
-          className="flex-1 text-foreground text-sm py-0.5"
-        />
-      </View>
+      <SearchAndFilters
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Buscar por nome, CPF ou telefone..."
+        filters={[
+          { key: "todos", label: "Todos" },
+          { key: "telefone", label: "Telefone" },
+          { key: "email", label: "E-mail" },
+          { key: "endereco", label: "Endereço" }
+        ]}
+        activeFilter={filterType}
+        onFilterChange={setFilterType}
+      />
 
       <FlatList
         data={filteredClients}
@@ -91,7 +111,7 @@ export default function Clients() {
           </View>
         }
         renderItem={({ item: client }) => (
-          <ClientCard client={client} onEdit={handleEditClient} />
+          <ClientCard client={client} onPress={() => setSelectedDetailClient(client)} />
         )}
       />
 
@@ -109,6 +129,17 @@ export default function Clients() {
         onSubmit={handleSubmit}
         editingClient={editingClient}
         clients={clients}
+      />
+
+      <ClientDetailsModal
+        visible={selectedDetailClient !== null}
+        onClose={() => setSelectedDetailClient(null)}
+        client={selectedDetailClient}
+        onEdit={() => {
+          if (selectedDetailClient) {
+            handleEditClient(selectedDetailClient);
+          }
+        }}
       />
     </View>
   );

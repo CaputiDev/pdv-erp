@@ -16,12 +16,13 @@ import { CheckoutFooter } from "../../domains/orders/components/CheckoutFooter";
 import { OrderCard } from "../../domains/orders/components/OrderCard";
 import { ClientSelectionModal } from "../../domains/clients/components/ClientSelectionModal";
 import { ProductSelectionModal } from "../../domains/products/components/ProductSelectionModal";
+import { SearchAndFilters } from "../../components/SearchAndFilters";
 
 export default function Orders() {
   const {
     clients,
     products,
-    orders,
+    filteredOrders,
     activeTab,
     setActiveTab,
     selectedClientId,
@@ -39,6 +40,10 @@ export default function Orders() {
     showProductModal,
     setShowProductModal,
     total,
+    historySearch,
+    setHistorySearch,
+    historyFilter,
+    setHistoryFilter,
     addToCart,
     removeFromCart,
     updateQuantity,
@@ -102,24 +107,38 @@ export default function Orders() {
         </>
       ) : (
         /* ORDER HISTORY LIST */
-        <FlatList
-          data={orders}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
-          ListEmptyComponent={
-            <View className="items-center justify-center py-20 bg-card border border-border/80 rounded-3xl shadow-sm">
-              <ShoppingCart className="text-muted-foreground/60 mb-3" size={32} />
-              <Text className="text-muted-foreground text-sm font-semibold">Nenhum pedido no histórico</Text>
-            </View>
-          }
-          renderItem={({ item }) => (
-            <OrderCard
-              order={item}
-              onComplete={completeOrder}
-              onDelete={deleteOrder}
-            />
-          )}
-        />
+        <View className="flex-1 px-4 pt-4">
+          <SearchAndFilters
+            search={historySearch}
+            onSearchChange={setHistorySearch}
+            placeholder="Buscar por cliente..."
+            filters={[
+              { key: "todos", label: "Todos" },
+              { key: "pendente", label: "Pendente" },
+              { key: "concluido", label: "Concluído" }
+            ]}
+            activeFilter={historyFilter}
+            onFilterChange={setHistoryFilter}
+          />
+          <FlatList
+            data={filteredOrders}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={
+              <View className="items-center justify-center py-20 bg-card border border-border/80 rounded-3xl shadow-sm">
+                <ShoppingCart className="text-muted-foreground/60 mb-3" size={32} />
+                <Text className="text-muted-foreground text-sm font-semibold">Nenhum pedido no histórico</Text>
+              </View>
+            }
+            renderItem={({ item }) => (
+              <OrderCard
+                order={item}
+                onComplete={completeOrder}
+                onDelete={deleteOrder}
+              />
+            )}
+          />
+        </View>
       )}
 
       {/* SELECTION MODALS */}

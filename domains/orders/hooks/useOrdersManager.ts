@@ -21,9 +21,23 @@ export function useOrdersManager() {
   const [showClientModal, setShowClientModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
 
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyFilter, setHistoryFilter] = useState<"todos" | "pendente" | "concluido">("todos");
+
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const selectedProduct = products.find((p) => p.id === selectedProductId);
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const filteredOrders = orders.filter((order) => {
+    const matchesSearch = order.clientName.toLowerCase().includes(historySearch.toLowerCase());
+    if (historyFilter === "pendente") {
+      return matchesSearch && order.status === "pendente";
+    }
+    if (historyFilter === "concluido") {
+      return matchesSearch && order.status === "concluido";
+    }
+    return matchesSearch;
+  });
 
   const addToCart = () => {
     if (!selectedProductId) {
@@ -149,6 +163,7 @@ export function useOrdersManager() {
     clients,
     products,
     orders,
+    filteredOrders,
     activeTab,
     setActiveTab,
     selectedClientId,
@@ -166,6 +181,10 @@ export function useOrdersManager() {
     showProductModal,
     setShowProductModal,
     total,
+    historySearch,
+    setHistorySearch,
+    historyFilter,
+    setHistoryFilter,
     addToCart,
     removeFromCart,
     updateQuantity,

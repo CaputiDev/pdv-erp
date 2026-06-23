@@ -3,9 +3,10 @@ import {
   View, 
   Text, 
   FlatList, 
-  TouchableOpacity 
+  TouchableOpacity
 } from "react-native";
 import { Plus, Package } from "lucide-react-native";
+import { SearchAndFilters } from "../../components/SearchAndFilters";
 import { useLocalStorage } from "../../hooks/useLocalStorage";
 import Toast from "react-native-toast-message";
 import { Product } from "../../domains/products/types";
@@ -14,8 +15,21 @@ import { ProductFormModal } from "../../domains/products/components/ProductFormM
 
 export default function Products() {
   const [products, setProducts] = useLocalStorage<Product[]>("products", []);
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"todos" | "critico">("todos");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      product.name.toLowerCase().includes(search.toLowerCase()) ||
+      (product.barcode && product.barcode.includes(search));
+
+    if (filterType === "critico") {
+      return matchesSearch && product.stock <= product.criticalStock;
+    }
+    return matchesSearch;
+  });
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -61,8 +75,20 @@ export default function Products() {
 
   return (
     <View className="flex-1 bg-background p-4 relative">
+      <SearchAndFilters
+        search={search}
+        onSearchChange={setSearch}
+        placeholder="Buscar por nome ou código..."
+        filters={[
+          { key: "todos", label: "Todos" },
+          { key: "critico", label: "Estoque Crítico" }
+        ]}
+        activeFilter={filterType}
+        onFilterChange={setFilterType}
+      />
+
       <FlatList
-        data={products}
+        data={filteredProducts}
         keyExtractor={(product) => product.id}
         contentContainerStyle={{ paddingBottom: 100 }}
         ListEmptyComponent={
