@@ -12,6 +12,7 @@ export function useOrdersManager() {
   const [orders, setOrders] = useLocalStorage<Order[]>("orders", []);
 
   const [activeTab, setActiveTab] = useState<"novo" | "historico">("novo");
+  const [step, setStep] = useState<"cliente" | "produtos" | "revisao">("cliente");
   const [selectedClientId, setSelectedClientId] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -23,6 +24,14 @@ export function useOrdersManager() {
 
   const [historySearch, setHistorySearch] = useState("");
   const [historyFilter, setHistoryFilter] = useState<"todos" | "pendente" | "concluido">("todos");
+
+  const resetOrder = () => {
+    setCart([]);
+    setSelectedClientId("");
+    setQuantity("1");
+    setStatus("pendente");
+    setStep("cliente");
+  };
 
   const selectedClient = clients.find((c) => c.id === selectedClientId);
   const selectedProduct = products.find((p) => p.id === selectedProductId);
@@ -123,9 +132,7 @@ export function useOrdersManager() {
     };
 
     setOrders([...orders, newOrder]);
-    setCart([]);
-    setSelectedClientId("");
-    setStatus("pendente");
+    resetOrder();
     Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido finalizado com sucesso!' });
   };
 
@@ -174,6 +181,9 @@ export function useOrdersManager() {
     filteredOrders,
     activeTab,
     setActiveTab,
+    step,
+    setStep,
+    resetOrder,
     selectedClientId,
     setSelectedClientId,
     selectedClient,
