@@ -6,8 +6,8 @@ import { Product } from "../../products/types";
 interface AddProductSectionProps {
   selectedProduct?: Product;
   onPressSelect: () => void;
-  quantity: number;
-  onChangeQuantity: (quantity: number) => void;
+  quantity: string;
+  onChangeQuantity: (quantity: string) => void;
   onAdd: () => void;
 }
 
@@ -28,7 +28,7 @@ export function AddProductSection({
       >
         <Text className={`text-sm ${selectedProduct ? "text-foreground font-semibold" : "text-muted-foreground"}`}>
           {selectedProduct 
-            ? `${selectedProduct.name} - R$ ${selectedProduct.price.toFixed(2)} (Est: ${selectedProduct.stock})` 
+            ? `${selectedProduct.name} - R$ ${selectedProduct.price.toFixed(2)} (qtd: ${selectedProduct.stock})` 
             : "Selecione um produto"}
         </Text>
         <ChevronDown className="text-muted-foreground" size={18} />
@@ -37,8 +37,8 @@ export function AddProductSection({
       <View className="flex-row gap-3">
         <TextInput
           keyboardType="number-pad"
-          value={quantity.toString()}
-          onChangeText={(text) => onChangeQuantity(parseInt(text) || 1)}
+          value={quantity}
+          onChangeText={onChangeQuantity}
           className="w-20 px-4 py-3.5 bg-muted/30 text-foreground border border-border/80 rounded-2xl text-center text-sm font-bold"
         />
         <TouchableOpacity

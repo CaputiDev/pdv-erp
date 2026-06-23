@@ -40,7 +40,7 @@ export default function Orders() {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number | "">(1);
   const [status, setStatus] = useState<"pendente" | "concluido">("pendente");
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
@@ -54,7 +54,13 @@ export default function Orders() {
     const product = products.find((p) => p.id === selectedProductId);
     if (!product) return;
 
-    if (quantity > product.stock) {
+    const qty = Number(quantity);
+    if (!qty || qty <= 0) {
+      toast.error("Quantidade inválida");
+      return;
+    }
+
+    if (qty > product.stock) {
       toast.error("Quantidade maior que o estoque disponível");
       return;
     }
@@ -62,7 +68,7 @@ export default function Orders() {
     const existingItem = cart.find((item) => item.productId === selectedProductId);
 
     if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
+      const newQuantity = existingItem.quantity + qty;
       if (newQuantity > product.stock) {
         toast.error("Quantidade total excede o estoque");
         return;
@@ -81,7 +87,7 @@ export default function Orders() {
           productId: product.id,
           productName: product.name,
           price: product.price,
-          quantity,
+          quantity: qty,
         },
       ]);
     }
@@ -187,7 +193,7 @@ export default function Orders() {
             <option value="">Selecione um produto</option>
             {products.map((product) => (
               <option key={product.id} value={product.id}>
-                {product.name} - R$ {product.price.toFixed(2)} (Est: {product.stock})
+                {product.name} - R$ {product.price.toFixed(2)} (qtd: {product.stock})
               </option>
             ))}
           </select>
@@ -197,7 +203,10 @@ export default function Orders() {
               type="number"
               min="1"
               value={quantity}
-              onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setQuantity(val === "" ? "" : parseInt(val, 10) || 1);
+              }}
               className="w-24 px-4 py-3 bg-input-background rounded-lg border border-border text-center"
               placeholder="qtd"
             />

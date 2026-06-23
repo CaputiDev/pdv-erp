@@ -15,7 +15,7 @@ export function useOrdersManager() {
   const [selectedClientId, setSelectedClientId] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedProductId, setSelectedProductId] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState("1");
   const [status, setStatus] = useState<"pendente" | "concluido">("pendente");
 
   const [showClientModal, setShowClientModal] = useState(false);
@@ -49,24 +49,30 @@ export function useOrdersManager() {
     const product = products.find((p) => p.id === selectedProductId);
     if (!product) return;
 
-    if (quantity > product.stock) {
+    const qty = parseInt(quantity, 10);
+    if (isNaN(qty) || qty <= 0) {
+      Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade inválida' });
+      return;
+    }
+
+    if (qty > product.stock) {
       Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade maior que o estoque disponível' });
       return;
     }
 
     const existingItem = cart.find((item) => item.productId === selectedProductId);
     if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
+      const newQuantity = existingItem.quantity + qty;
       if (newQuantity > product.stock) {
         Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade total excede o estoque' });
         return;
       }
       setCart(cart.map((item) => item.productId === selectedProductId ? { ...item, quantity: newQuantity } : item));
     } else {
-      setCart([...cart, { productId: product.id, productName: product.name, price: product.price, quantity }]);
+      setCart([...cart, { productId: product.id, productName: product.name, price: product.price, quantity: qty }]);
     }
     setSelectedProductId("");
-    setQuantity(1);
+    setQuantity("1");
     Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Produto adicionado ao carrinho' });
   };
 
