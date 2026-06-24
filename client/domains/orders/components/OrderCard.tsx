@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Check, Trash2, ChevronDown, ChevronUp, Calendar } from "lucide-react-native";
+import { Check, ChevronDown, ChevronUp, Calendar } from "lucide-react-native";
 import { Order } from "../types";
 
 interface OrderCardProps {
   order: Order;
   onComplete: (id: string) => void;
-  onDelete: (id: string) => void;
 }
 
-export function OrderCard({ order, onComplete, onDelete }: OrderCardProps) {
+export function OrderCard({ order, onComplete }: OrderCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const formattedDate = () => {
@@ -72,13 +71,6 @@ export function OrderCard({ order, onComplete, onDelete }: OrderCardProps) {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
-            onPress={() => onDelete(order.id)}
-            activeOpacity={0.7}
-            className="p-2.5 bg-destructive/10 rounded-xl"
-          >
-            <Trash2 className="text-destructive" size={16} />
-          </TouchableOpacity>
 
           <TouchableOpacity
             onPress={() => setExpanded(!expanded)}

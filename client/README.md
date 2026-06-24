@@ -45,6 +45,19 @@ Antes de iniciar, garanta que você possui os seguintes pré-requisitos instalad
 
 ---
 
+## 💻 Tecnologias Usadas
+
+O aplicativo foi desenvolvido utilizando as seguintes tecnologias:
+
+- **React Native & Expo**: Framework para desenvolvimento cross-platform nativo de alta performance.
+- **Expo Router**: Gerenciamento e navegação de rotas do aplicativo de forma simplificada por arquivos.
+- **NativeWind (Tailwind CSS)**: Estilização de componentes por meio de classes utilitárias de CSS.
+- **Lucide React Native**: Conjunto de ícones vetoriais modernos e personalizáveis.
+- **MMKV (react-native-mmkv)**: Banco de dados local chave-valor extremamente veloz e persistente para suporte offline-first.
+- **React Native Toast Message**: Biblioteca para exibição de alertas e feedbacks visuais na tela.
+
+---
+
 ## 🚀 Como Executar
 
 1. **Instalar dependências**:

@@ -28,6 +28,19 @@ Antes de iniciar, verifique se possui as seguintes ferramentas configuradas na s
 
 ---
 
+## 💻 Tecnologias Usadas
+
+O backend foi desenvolvido utilizando as seguintes tecnologias:
+
+- **Python 3.11**: Linguagem de programação robusta, de alta legibilidade e eficiência.
+- **FastAPI**: Framework web moderno e veloz para construção de APIs assíncronas em Python.
+- **SQLModel**: ORM híbrido que combina SQLAlchemy e Pydantic para validação e mapeamento de dados eficiente.
+- **PostgreSQL**: Banco de dados relacional robusto e escalável.
+- **Docker & Docker Compose**: Ferramentas para empacotamento e gerenciamento de infraestrutura em containers.
+- **Uvicorn**: Servidor ASGI leve e de alta performance para hospedar a aplicação FastAPI.
+
+---
+
 ## 🚀 Como executar tudo pelo Docker (Recomendado)
 
 Para rodar todo o ambiente (Banco PostgreSQL + API FastAPI em Python) de forma integrada e sem necessidade de configurar nada localmente, execute o comando abaixo na pasta `server/`:

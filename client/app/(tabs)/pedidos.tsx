@@ -407,7 +407,6 @@ export default function Orders() {
               <OrderCard
                 order={item}
                 onComplete={completeOrder}
-                onDelete={deleteOrder}
               />
             )}
           />
