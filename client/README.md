@@ -18,7 +18,7 @@ Antes de iniciar, garanta que você possui os seguintes pré-requisitos instalad
       <h3>📦 Gerenciador de Pacotes</h3>
       <hr>
       <ul>
-        <li>Suporte a <code>npm</code> ou <code>pnpm</code></li>
+        <li>Suporte a <code>npm</code> e <code>pnpm(recomendado)</code></li>
         <li>Instalação e execução de dependências</li>
       </ul>
     </td>
