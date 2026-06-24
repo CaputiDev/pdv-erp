@@ -1,6 +1,15 @@
 # Backend PDV ERP
 
-Este diretório contém a API backend do projeto PDV ERP, responsável pela sincronização offline-first e persistência dos dados de clientes, produtos e pedidos.
+## 🛠️ Tecnologias e Requisitos Necessários
+
+Antes de iniciar, verifique se possui as seguintes ferramentas configuradas na sua máquina:
+
+1. **Docker**: Necessário para rodar o banco de dados PostgreSQL e os containers da API de forma isolada.
+2. **Python 3.10+** (Apenas se optar por rodar a API localmente na sua máquina física fora do Docker):
+   - Ambiente virtual configurado (`venv`).
+   - Gerenciador de pacotes `pip` atualizado.
+
+---
 
 ## 🚀 Como Executar pelo Docker (Tudo-em-um)
 
