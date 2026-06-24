@@ -10,6 +10,7 @@ expo-env.d.ts
 *.p8
 *.p12
 *.key
+plan_back.md
 *.mobileprovision
 .metro-health-check*
 npm-debug.log*
