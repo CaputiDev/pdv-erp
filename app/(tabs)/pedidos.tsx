@@ -51,26 +51,45 @@ export default function Orders() {
     updateQuantity,
     finalizeOrder,
     completeOrder,
-    deleteOrder
+    deleteOrder,
+    cancelOrder
   } = useOrdersManager();
 
   return (
     <View className="flex-1 bg-background">
-      {/* TAB SWITCHER */}
-      <View className="flex-row mx-4 mt-4 bg-muted/40 p-1 rounded-2xl border border-border/80">
-        {(["novo", "historico"] as const).map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            onPress={() => setActiveTab(tab)}
-            activeOpacity={0.7}
-            className={`flex-1 py-3 rounded-xl items-center justify-center ${activeTab === tab ? "bg-card shadow-sm" : ""}`}
-          >
-            <Text className={`text-sm font-bold ${activeTab === tab ? "text-foreground" : "text-muted-foreground"}`}>
-              {tab === "novo" ? "Novo Pedido" : "Histórico"}
+      {/* TAB SWITCHER OR ACTIVE ORDER HEADER */}
+      {activeTab === "novo" && selectedClientId ? (
+        <View className="flex-row items-center justify-between mx-5 mt-4 pb-2 border-b border-border/40">
+          <View className="flex-1 mr-4">
+            <Text className="text-[10px] font-black uppercase text-muted-foreground">Pedido em Andamento</Text>
+            <Text className="text-sm font-extrabold text-foreground" numberOfLines={1}>
+              {selectedClient?.name}
             </Text>
+          </View>
+          <TouchableOpacity
+            onPress={cancelOrder}
+            activeOpacity={0.7}
+            className="px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/20"
+          >
+            <Text className="text-xs font-bold text-destructive">Cancelar</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+      ) : (
+        <View className="flex-row mx-4 mt-4 bg-muted/40 p-1 rounded-2xl border border-border/80">
+          {(["novo", "historico"] as const).map((tab) => (
+            <TouchableOpacity
+              key={tab}
+              onPress={() => setActiveTab(tab)}
+              activeOpacity={0.7}
+              className={`flex-1 py-3 rounded-xl items-center justify-center ${activeTab === tab ? "bg-card shadow-sm" : ""}`}
+            >
+              <Text className={`text-sm font-bold ${activeTab === tab ? "text-foreground" : "text-muted-foreground"}`}>
+                {tab === "novo" ? "Novo Pedido" : "Histórico"}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       {activeTab === "novo" && (
         <View className="flex-row items-center justify-between px-6 py-4 bg-muted/20 border-b border-border/50">

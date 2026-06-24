@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, Platform } from "react-native";
 import Toast from "react-native-toast-message";
 import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Client } from "../../clients/types";
@@ -161,17 +161,47 @@ export function useOrdersManager() {
   };
 
   const deleteOrder = (orderId: string) => {
-    Alert.alert("Excluir Pedido", "Tem certeza que deseja excluir este pedido do histórico?", [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Excluir",
-        style: "destructive",
-        onPress: () => {
-          setOrders(orders.filter(o => o.id !== orderId));
-          Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido excluído com sucesso!' });
-        }
+    if (Platform.OS === "web") {
+      const confirmDelete = window.confirm("Tem certeza que deseja excluir este pedido do histórico?");
+      if (confirmDelete) {
+        setOrders(orders.filter(o => o.id !== orderId));
+        Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido excluído com sucesso!' });
       }
-    ]);
+    } else {
+      Alert.alert("Excluir Pedido", "Tem certeza que deseja excluir este pedido do histórico?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            setOrders(orders.filter(o => o.id !== orderId));
+            Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido excluído com sucesso!' });
+          }
+        }
+      ]);
+    }
+  };
+
+  const cancelOrder = () => {
+    if (Platform.OS === "web") {
+      const confirmCancel = window.confirm("Tem certeza que deseja cancelar este pedido? Todo o progresso será perdido.");
+      if (confirmCancel) {
+        resetOrder();
+        Toast.show({ type: 'info', text1: 'Pedido cancelado' });
+      }
+    } else {
+      Alert.alert("Cancelar Pedido", "Tem certeza que deseja cancelar este pedido? Todo o progresso será perdido.", [
+        { text: "Não", style: "cancel" },
+        {
+          text: "Sim, Cancelar",
+          style: "destructive",
+          onPress: () => {
+            resetOrder();
+            Toast.show({ type: 'info', text1: 'Pedido cancelado' });
+          }
+        }
+      ]);
+    }
   };
 
   return {
@@ -184,6 +214,7 @@ export function useOrdersManager() {
     step,
     setStep,
     resetOrder,
+    cancelOrder,
     selectedClientId,
     setSelectedClientId,
     selectedClient,
