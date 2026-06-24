@@ -1,15 +1,47 @@
 # Front-end PDV ERP
 
-## Tecnologias e Requisitos Necessários
+## 🛠️ Tecnologias e Requisitos Necessários
 
-Antes de rodar o projeto do aplicativo, certifique-se de ter as seguintes ferramentas instaladas:
+Antes de iniciar, garanta que você possui os seguintes pré-requisitos instalados:
 
-1. **Node.js**: Versão `18.x` ou superior (recomendado LTS).
-2. **Gerenciador de Pacotes**: `pnpm` (recomendado) ou `npm` / `yarn`.
-3. **Para testes em dispositivos móveis**:
-   - **Dispositivo Físico**: Aplicativo **Expo Go** instalado no seu smartphone (Android/iOS).
-   - **Dispositivo Emulado**: **Android Studio** (com emulador configurado) ou **Xcode** (no macOS para iOS).
-4. **Para testes na Web**: Um navegador moderno de sua preferência.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🟢 Node.js</h3>
+      <hr>
+      <ul>
+        <li>Versão <b>18.x</b> ou superior</li>
+        <li>Recomendado versão LTS</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>📦 Gerenciador de Pacotes</h3>
+      <hr>
+      <ul>
+        <li>Suporte a <code>npm</code> ou <code>pnpm</code></li>
+        <li>Instalação e execução de dependências</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📱 Teste Mobile</h3>
+      <hr>
+      <ul>
+        <li><b>Físico</b>: App <b>Expo Go</b> no celular</li>
+        <li><b>Emulador</b>: Android Studio / Xcode</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🌐 Teste Web</h3>
+      <hr>
+      <ul>
+        <li>Qualquer navegador moderno</li>
+        <li>Visualização rápida em desktop</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -18,7 +50,7 @@ Antes de rodar o projeto do aplicativo, certifique-se de ter as seguintes ferram
 1. **Instalar dependências**:
 
    ```bash
-   pnpm install
+   npm install
    ```
 
 2. **Rodar o servidor**:
