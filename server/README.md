@@ -4,14 +4,31 @@
 
 Antes de iniciar, verifique se possui as seguintes ferramentas configuradas na sua máquina:
 
-1. **Docker**: Necessário para rodar o banco de dados PostgreSQL e os containers da API de forma isolada.
-2. **Python 3.10+** (Apenas se optar por rodar a API localmente na sua máquina física fora do Docker):
-   - Ambiente virtual configurado (`venv`).
-   - Gerenciador de pacotes `pip` atualizado.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🐳 Docker</h3>
+      <hr>
+      <ul>
+        <li>Banco de dados PostgreSQL (container <code>pdv-erp-db</code>)</li>
+        <li>Instanciação da API isolada (container <code>pdv-erp-server</code>)</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🐍 Python 3.10+</h3>
+      <hr>
+      <ul>
+        <li>Necessário apenas para execução híbrida local</li>
+        <li>Criação de ambiente virtual isolado (<code>venv</code>)</li>
+        <li>Gerenciador de pacotes <code>pip</code> ativo</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 🚀 Como Executar pelo Docker (Tudo-em-um)
+## 🚀 Como executar tudo pelo Docker (Recomendado)
 
 Para rodar todo o ambiente (Banco PostgreSQL + API FastAPI em Python) de forma integrada e sem necessidade de configurar nada localmente, execute o comando abaixo na pasta `server/`:
 
@@ -20,12 +37,16 @@ docker compose up --build -d
 ```
 
 Este comando irá:
+
 1. Provisionar o banco PostgreSQL no container `pdv-erp-db`.
 2. Compilar e iniciar o servidor FastAPI no container `pdv-erp-server` exposto na porta `8000`.
 
 A API estará rodando em **[http://127.0.0.1:8000](http://127.0.0.1:8000)** e a documentação Swagger em **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**.
 
 ---
+
+<details>
+<summary><b>Clique para expandir as instruções de execução híbrida</b></summary>
 
 ## 🛠️ Como Executar de Forma Híbrida (Banco no Docker + Python Local)
 
@@ -43,13 +64,15 @@ docker compose up db -d
 
 Na pasta `server/`, crie e ative um ambiente virtual:
 
-#### No Windows:
+#### Windows
+
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-#### No Linux / macOS:
+#### Linux / macOS
+
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -84,6 +107,8 @@ O servidor estará rodando em `http://127.0.0.1:8000`.
 Após iniciar o servidor, você pode acessar a interface do Swagger para interagir e testar as rotas da API em:
 
 👉 **[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)**
+
+</details>
 
 ---
 

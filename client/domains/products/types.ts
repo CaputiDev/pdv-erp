@@ -5,4 +5,5 @@ export interface Product {
   stock: number;
   barcode: string;
   criticalStock: number;
+  synced?: boolean;
 }

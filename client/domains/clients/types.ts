@@ -5,4 +5,5 @@ export interface Client {
   email: string;
   address: string;
   cpf: string;
+  synced?: boolean;
 }

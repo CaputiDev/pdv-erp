@@ -44,6 +44,8 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+import Toast from 'react-native-toast-message';
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
@@ -53,6 +55,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
+      <Toast />
     </ThemeProvider>
   );
 }

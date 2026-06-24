@@ -13,4 +13,5 @@ export interface Order {
   total: number;
   status: "pendente" | "concluido";
   date: string;
+  synced?: boolean;
 }

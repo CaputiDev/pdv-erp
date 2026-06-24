@@ -46,3 +46,16 @@ relatorio.md
 *.sw?
 package-lock.json
 yarn.lock
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.log
+venv/
+.venv/
+ENV/
+env/
+*.db
+*.sqlite3
+.pytest_cache/
