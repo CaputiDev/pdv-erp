@@ -219,7 +219,7 @@ export default function Dashboard() {
           )}
 
           <TouchableOpacity
-            onPress={handleSync}
+            onPress={() => handleSync(true)}
             disabled={isSyncing}
             activeOpacity={0.8}
             className={`h-11 rounded-xl items-center justify-center flex-row gap-2 ${

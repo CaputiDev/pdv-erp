@@ -1,4 +1,5 @@
-import { Tabs, router } from 'expo-router';
+import { useEffect } from 'react';
+import { Tabs, router, usePathname } from 'expo-router';
 import { Home, Users, Package, ShoppingCart, Cloud } from 'lucide-react-native';
 import { TouchableOpacity, View } from 'react-native';
 
@@ -9,7 +10,23 @@ import { useSync } from '../../domains/sync/SyncContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const { connectionStatus, totalPending, isSyncCardExpanded, setIsSyncCardExpanded } = useSync();
+  const { 
+    connectionStatus, 
+    totalPending, 
+    isSyncCardExpanded, 
+    setIsSyncCardExpanded,
+    handleSync,
+    isSyncing
+  } = useSync();
+
+  const pathname = usePathname();
+
+  // Sincronizar sempre que o usuário mudar de aba (entrar em uma página)
+  useEffect(() => {
+    if (connectionStatus === "online" && !isSyncing) {
+      handleSync();
+    }
+  }, [pathname]);
 
   // Mostrar bolinha se o servidor estiver caído (vermelho) ou se houver itens desincronizados (laranja)
   const showBadge = connectionStatus === "offline" || totalPending > 0;

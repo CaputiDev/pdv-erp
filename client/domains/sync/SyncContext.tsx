@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Platform } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
 import { Client } from '../clients/types';
@@ -17,8 +17,8 @@ interface SyncContextType {
   pendingClients: Client[];
   pendingProducts: Product[];
   pendingOrders: Order[];
-  verifyConnection: () => Promise<void>;
-  handleSync: () => Promise<void>;
+  verifyConnection: () => Promise<"online" | "offline">;
+  handleSync: (showToast?: boolean) => Promise<void>;
   isSyncCardExpanded: boolean;
   setIsSyncCardExpanded: React.Dispatch<React.SetStateAction<boolean>>;
   clients: Client[];
@@ -71,7 +71,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const verifyConnection = async () => {
     setConnectionStatus("checking");
     const isOnline = await checkConnection(backendUrl);
-    setConnectionStatus(isOnline ? "online" : "offline");
+    const status = isOnline ? "online" : "offline";
+    setConnectionStatus(status);
+    return status;
   };
 
   useEffect(() => {
@@ -87,7 +89,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [backendUrl]);
 
-  const handleSync = async () => {
+  const handleSync = async (showToast: boolean = false) => {
     if (isSyncing) return;
     setIsSyncing(true);
 
@@ -95,12 +97,14 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       const isOnline = await checkConnection(backendUrl);
       if (!isOnline) {
         setConnectionStatus("offline");
-        Toast.show({
-          type: "error",
-          text1: "Erro de Conexão",
-          text2: "Servidor indisponível. Verifique a URL do backend.",
-          position: "bottom"
-        });
+        if (showToast) {
+          Toast.show({
+            type: "error",
+            text1: "Erro de Conexão",
+            text2: "Servidor indisponível. Verifique a URL do backend.",
+            position: "bottom"
+          });
+        }
         setIsSyncing(false);
         return;
       }
@@ -160,27 +164,42 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         ];
       }
 
+      const ordersRes = await fetch(`${backendUrl}/pedidos`);
+      let latestOrders = updatedOrders;
+      if (ordersRes.ok) {
+        const serverOrders: Order[] = await ordersRes.json();
+        const serverOrdersMarked = serverOrders.map(o => ({ ...o, synced: true }));
+        latestOrders = [
+          ...serverOrdersMarked,
+          ...updatedOrders.filter(o => !o.synced && !serverOrdersMarked.some(so => so.id === o.id))
+        ];
+      }
+
       setClients(latestClients);
       setProducts(latestProducts);
-      setOrders(updatedOrders);
+      setOrders(latestOrders);
 
       const nowStr = new Date().toLocaleString("pt-BR");
       setLastSync(nowStr);
 
-      Toast.show({
-        type: "success",
-        text1: "Sincronização Concluída",
-        text2: "Dados sincronizados e atualizados com sucesso!",
-        position: "bottom"
-      });
+      if (showToast) {
+        Toast.show({
+          type: "success",
+          text1: "Sincronização Concluída",
+          text2: "Dados sincronizados e atualizados com sucesso!",
+          position: "bottom"
+        });
+      }
     } catch (error) {
       console.error("Erro ao sincronizar:", error);
-      Toast.show({
-        type: "error",
-        text1: "Falha na Sincronização",
-        text2: "Erro ao comunicar com o servidor.",
-        position: "bottom"
-      });
+      if (showToast) {
+        Toast.show({
+          type: "error",
+          text1: "Falha na Sincronização",
+          text2: "Erro ao comunicar com o servidor.",
+          position: "bottom"
+        });
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -220,6 +239,31 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     if (productsChanged) setProducts(cleanedProducts);
     if (ordersChanged) setOrders(cleanedOrders);
   }, [clients, products, orders]);
+
+  // Sincronizar ao iniciar o aplicativo e ao retornar do segundo plano (active)
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      if (nextAppState === 'active') {
+        const status = await verifyConnection();
+        if (status === 'online' && !isSyncing) {
+          await handleSync();
+        }
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    // Sincronização inicial na montagem se estiver online
+    verifyConnection().then((status) => {
+      if (status === 'online' && !isSyncing) {
+        handleSync();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (connectionStatus === "online" && !isSyncing) {
