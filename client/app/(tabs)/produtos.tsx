@@ -51,7 +51,7 @@ export default function Products() {
     setEditingProduct(null);
   };
 
-  const handleSubmit = (productData: Omit<Product, 'id'>) => {
+  const handleSubmit = (productData: Omit<Product, 'id' | 'retiradoNoEstoque' | 'shippingCost' | 'categoryId'>) => {
     if (editingProduct) {
       // Update product
       const updatedProducts = products.map((p) =>
@@ -70,6 +70,8 @@ export default function Products() {
       const newProduct: Product = {
         id: generateUniqueUUID(products.map((p) => p.id)),
         ...productData,
+        retiradoNoEstoque: false,
+        shippingCost: 0,
         synced: false
       };
       setProducts([...products, newProduct]);

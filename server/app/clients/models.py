@@ -8,3 +8,5 @@ class Client(SQLModel, table=True):
     email: Optional[str] = None
     address: Optional[str] = None
     cpf: Optional[str] = None
+    creditLimit: float = Field(default=0.0)
+    creditScore: int = Field(default=0)

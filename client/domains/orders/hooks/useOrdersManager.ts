@@ -7,9 +7,11 @@ import { Product } from "../../products/types";
 import { Order, CartItem } from "../types";
 import { generateUniqueUUID } from "../../../utils/uuid";
 import { useSync } from "../../sync/SyncContext";
+import { useAuth } from "../../users/AuthContext";
 
 export function useOrdersManager() {
   const { clients, products, setProducts, orders, setOrders } = useSync();
+  const { currentUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"novo" | "historico">("novo");
   const [step, setStep] = useState<"cliente" | "produtos" | "revisao">("cliente");
@@ -123,7 +125,11 @@ export function useOrdersManager() {
       clientName: client.name,
       items: cart,
       total,
+      discount: 0,
+      shippingCost: 0,
       status,
+      salespersonId: currentUser?.id || "unknown",
+      salespersonName: currentUser?.name || "Vendedor",
       date: new Date().toISOString(),
       synced: false
     };

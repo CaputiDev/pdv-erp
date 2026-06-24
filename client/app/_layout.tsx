@@ -22,6 +22,9 @@ export const unstable_settings = {
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+import { AuthProvider, useAuth } from '../domains/users/AuthContext';
+import { useSegments, useRouter } from 'expo-router';
+
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -43,9 +46,11 @@ export default function RootLayout() {
   }
 
   return (
-    <CustomThemeProvider>
-      <RootLayoutNav />
-    </CustomThemeProvider>
+    <AuthProvider>
+      <CustomThemeProvider>
+        <RootLayoutNav />
+      </CustomThemeProvider>
+    </AuthProvider>
   );
 }
 
@@ -78,12 +83,39 @@ const CustomDarkTheme = {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { currentUser } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    const firstSegment = segments[0] as string;
+    const inAuthGroup = firstSegment === 'login' || firstSegment === 'change-password';
+
+    if (!currentUser) {
+      // Se não está autenticado, forçar ir para login
+      if (firstSegment !== 'login') {
+        router.replace('/login' as any);
+      }
+    } else if (currentUser.isTempPassword) {
+      // Se a senha é temporária, forçar trocar senha
+      if (firstSegment !== 'change-password') {
+        router.replace('/change-password' as any);
+      }
+    } else {
+      // Se está logado e senha é definitiva, mas está na auth, redireciona para dashboard
+      if (inAuthGroup) {
+        router.replace('/(tabs)' as any);
+      }
+    }
+  }, [currentUser, segments]);
 
   return (
     <SyncProvider>
       <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="change-password" options={{ headerShown: false }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         </Stack>
         <Toast />

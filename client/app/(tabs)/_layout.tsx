@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import { 
   Home, Users, Package, ShoppingCart, Cloud, 
-  Settings, X, Sun, Moon, Monitor, Database, RefreshCw 
+  Settings, X, Sun, Moon, Monitor, Database, RefreshCw,
+  Shield, Wallet, Truck, Landmark, BarChart3, Menu, LogOut
 } from 'lucide-react-native';
 import { TouchableOpacity, View, Modal, ScrollView, Text, TextInput, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
@@ -12,10 +13,46 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useSync } from '../../domains/sync/SyncContext';
 import { useTheme } from '@/components/ThemeContext';
+import { useAuth } from '../../domains/users/AuthContext';
+
+const TAB_METADATA: { [key: string]: { title: string; icon: any; route: string } } = {
+  index: { title: 'Início', icon: Home, route: '/(tabs)' },
+  clientes: { title: 'Clientes', icon: Users, route: '/(tabs)/clientes' },
+  produtos: { title: 'Produtos', icon: Package, route: '/(tabs)/produtos' },
+  pedidos: { title: 'Vendas', icon: ShoppingCart, route: '/(tabs)/pedidos' },
+  admin: { title: 'Admin', icon: Shield, route: '/(tabs)/admin' },
+  caixa: { title: 'Caixa', icon: Wallet, route: '/(tabs)/caixa' },
+  estoque: { title: 'Estoque', icon: Truck, route: '/(tabs)/estoque' },
+  financeiro: { title: 'Finanças', icon: Landmark, route: '/(tabs)/financeiro' },
+  gestor: { title: 'Gestão', icon: BarChart3, route: '/(tabs)/gestor' }
+};
+
+const getRoleTabs = (role?: string) => {
+  if (!role) return [];
+  switch (role) {
+    case 'admin':
+      return ['clientes', 'produtos', 'pedidos', 'caixa', 'estoque', 'financeiro', 'gestor', 'admin'];
+    case 'caixa':
+      return ['index', 'caixa'];
+    case 'vendedor':
+      return ['index', 'clientes', 'produtos', 'pedidos'];
+    case 'estoque':
+      return ['index', 'produtos', 'estoque'];
+    case 'financeiro':
+      return ['index', 'clientes', 'financeiro'];
+    case 'gestor_geral':
+    case 'gestor_rh':
+      return ['index', 'clientes', 'produtos', 'gestor'];
+    default:
+      return ['index'];
+  }
+};
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { theme, setTheme } = useTheme();
+  const { currentUser, logout } = useAuth();
   const { 
     backendUrl,
     setBackendUrl,
@@ -27,10 +64,20 @@ export default function TabLayout() {
     verifyConnection
   } = useSync();
 
+  const router = useRouter();
   const pathname = usePathname();
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [inputUrl, setInputUrl] = useState(backendUrl);
   const [isTestingUrl, setIsTestingUrl] = useState(false);
+
+  const allAuthorizedTabs = getRoleTabs(currentUser?.role);
+  const bottomBarTabs = allAuthorizedTabs.slice(0, 4);
+  const sidebarTabs = allAuthorizedTabs.slice(4);
+
+  const isTabInBottomBar = (tabName: string) => {
+    return bottomBarTabs.includes(tabName);
+  };
 
   // Sincronizar sempre que o usuário mudar de aba (entrar em uma página)
   useEffect(() => {
@@ -104,11 +151,11 @@ export default function TabLayout() {
           headerTitleAlign: 'center',
           headerLeft: () => (
             <TouchableOpacity
-              onPress={() => setIsSettingsVisible(true)}
+              onPress={() => setIsSidebarVisible(true)}
               activeOpacity={0.7}
               style={{ marginLeft: 16 }}
             >
-              <Settings color={Colors[colorScheme].text} size={24} />
+              <Menu color={Colors[colorScheme].text} size={24} />
             </TouchableOpacity>
           ),
           headerRight: () => (
@@ -138,6 +185,7 @@ export default function TabLayout() {
           name="index"
           options={{
             title: 'Início',
+            href: (isTabInBottomBar('index') ? '/(tabs)' : null) as any,
             tabBarIcon: ({ color }) => <Home color={color} size={24} />,
           }}
         />
@@ -145,6 +193,7 @@ export default function TabLayout() {
           name="clientes"
           options={{
             title: 'Clientes',
+            href: (isTabInBottomBar('clientes') ? '/(tabs)/clientes' : null) as any,
             tabBarIcon: ({ color }) => <Users color={color} size={24} />,
           }}
         />
@@ -152,14 +201,56 @@ export default function TabLayout() {
           name="produtos"
           options={{
             title: 'Produtos',
+            href: (isTabInBottomBar('produtos') ? '/(tabs)/produtos' : null) as any,
             tabBarIcon: ({ color }) => <Package color={color} size={24} />,
           }}
         />
         <Tabs.Screen
           name="pedidos"
           options={{
-            title: 'Pedidos',
+            title: 'Vendas',
+            href: (isTabInBottomBar('pedidos') ? '/(tabs)/pedidos' : null) as any,
             tabBarIcon: ({ color }) => <ShoppingCart color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            href: (isTabInBottomBar('admin') ? '/(tabs)/admin' : null) as any,
+            tabBarIcon: ({ color }) => <Shield color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="caixa"
+          options={{
+            title: 'Caixa',
+            href: (isTabInBottomBar('caixa') ? '/(tabs)/caixa' : null) as any,
+            tabBarIcon: ({ color }) => <Wallet color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="estoque"
+          options={{
+            title: 'Estoque',
+            href: (isTabInBottomBar('estoque') ? '/(tabs)/estoque' : null) as any,
+            tabBarIcon: ({ color }) => <Truck color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="financeiro"
+          options={{
+            title: 'Finanças',
+            href: (isTabInBottomBar('financeiro') ? '/(tabs)/financeiro' : null) as any,
+            tabBarIcon: ({ color }) => <Landmark color={color} size={24} />,
+          }}
+        />
+        <Tabs.Screen
+          name="gestor"
+          options={{
+            title: 'Gestão',
+            href: (isTabInBottomBar('gestor') ? '/(tabs)/gestor' : null) as any,
+            tabBarIcon: ({ color }) => <BarChart3 color={color} size={24} />,
           }}
         />
       </Tabs>
@@ -302,6 +393,99 @@ export default function TabLayout() {
 
             </ScrollView>
           </View>
+        </View>
+      </Modal>
+
+      {/* SIDEBAR DE NAVEGAÇÃO E OPÇÕES */}
+      <Modal
+        visible={isSidebarVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setIsSidebarVisible(false)}
+      >
+        <View style={{ flex: 1, flexDirection: 'row' }}>
+          {/* Painel do Sidebar (Posicionado à Esquerda) */}
+          <View className="w-[280px] h-full bg-background border-r border-border/80 p-6 pt-12 gap-6 justify-between shadow-2xl">
+            <View className="gap-6">
+              {/* Perfil do Usuário */}
+              <View className="flex-row items-center gap-3 border-b border-border/40 pb-5">
+                <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center border border-primary/20">
+                  <Text className="text-primary font-bold text-lg">
+                    {currentUser?.name?.slice(0, 2).toUpperCase() || 'US'}
+                  </Text>
+                </View>
+                <View className="flex-1">
+                  <Text className="text-foreground font-bold text-sm" numberOfLines={1}>
+                    {currentUser?.name || 'Colaborador'}
+                  </Text>
+                  <Text className="text-muted-foreground text-[10px] uppercase font-bold tracking-wider mt-0.5">
+                    {currentUser?.role?.replace('_', ' ') || 'Carregando...'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Acesso Rápido / Recursos Ocultos */}
+              {sidebarTabs.length > 0 && (
+                <View className="gap-2">
+                  {sidebarTabs.map((tabKey) => {
+                    const metadata = TAB_METADATA[tabKey];
+                    if (!metadata) return null;
+                    const Icon = metadata.icon;
+                    return (
+                      <TouchableOpacity
+                        key={tabKey}
+                        onPress={() => {
+                          setIsSidebarVisible(false);
+                          router.navigate(metadata.route as any);
+                        }}
+                        activeOpacity={0.7}
+                        className="flex-row items-center gap-3 py-3 px-3 rounded-xl bg-card border border-border/40"
+                      >
+                        <Icon color={Colors[colorScheme].text} size={18} />
+                        <Text className="text-sm font-semibold text-foreground">
+                          {metadata.title}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+
+            {/* Ações do Rodapé do Sidebar */}
+            <View className="border-t border-border/40 pt-4 gap-3">
+              <TouchableOpacity
+                onPress={() => {
+                  setIsSidebarVisible(false);
+                  setIsSettingsVisible(true);
+                }}
+                activeOpacity={0.7}
+                className="flex-row items-center gap-3 py-2.5 px-3 rounded-xl border border-border/60"
+              >
+                <Settings color={Colors[colorScheme].text} size={16} />
+                <Text className="text-xs font-bold text-foreground">Configurações</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setIsSidebarVisible(false);
+                  logout();
+                }}
+                activeOpacity={0.7}
+                className="flex-row items-center gap-3 py-2.5 px-3 rounded-xl bg-destructive/10 border border-destructive/20"
+              >
+                <LogOut color="#ef4444" size={16} />
+                <Text className="text-xs font-bold text-destructive">Fazer Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Overlay semi-transparente */}
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={() => setIsSidebarVisible(false)}
+            className="flex-1 bg-black/60"
+          />
         </View>
       </Modal>
     </View>

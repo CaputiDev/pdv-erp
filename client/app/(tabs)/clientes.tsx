@@ -54,7 +54,7 @@ export default function Clients() {
     setEditingClient(null);
   };
 
-  const handleSubmit = (clientData: Omit<Client, 'id'>) => {
+  const handleSubmit = (clientData: Omit<Client, 'id' | 'creditLimit' | 'creditScore'>) => {
     if (editingClient) {
       // Update existing client
       const updatedClients = clients.map((c) =>
@@ -73,6 +73,8 @@ export default function Clients() {
       const newClient: Client = {
         id: generateUniqueUUID(clients.map((c) => c.id)),
         ...clientData,
+        creditLimit: 0,
+        creditScore: 0,
         synced: false
       };
       setClients([...clients, newClient]);

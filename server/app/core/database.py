@@ -8,8 +8,11 @@ engine = create_engine(DATABASE_URL, echo=True)
 def init_db():
     # Garantir que o SQLModel conheça todos os modelos antes de chamar create_all
     from app.clients.models import Client
-    from app.products.models import Product
+    from app.products.models import Product, Category
     from app.orders.models import Order, OrderItem
+    from app.users.models import User
+    from app.sessions.models import CaixaSession
+    from app.incidents.models import Incident
     
     SQLModel.metadata.create_all(engine)
     

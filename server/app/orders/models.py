@@ -6,7 +6,11 @@ class Order(SQLModel, table=True):
     clientId: str = Field(foreign_key="client.id")
     clientName: str
     total: float
+    discount: float = Field(default=0.0)
+    shippingCost: float = Field(default=0.0)
     status: str  # "pendente" | "concluido"
+    salespersonId: str = Field(default="")
+    salespersonName: str = Field(default="")
     date: str
 
     # Relationship back-reference

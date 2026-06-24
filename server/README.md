@@ -131,3 +131,46 @@ Após iniciar o servidor, você pode acessar a interface do Swagger para interag
 - `GET /produtos` / `POST /produtos`: Consulta e cadastro/sincronização de produtos.
 - `GET /pedidos` / `POST /pedidos`: Histórico e fechamento de pedidos com baixa automática no estoque.
 - `POST /sync`: Endpoint centralizado para processar em lote os dados gerados em modo offline no app mobile.
+
+---
+
+## 🧪 Testes Automatizados
+
+O backend possui uma suíte completa de testes de integração automatizados para validar o fluxo de autenticação, permissões por cargo, ciclo de vida do caixa, incidentes e sincronização offline.
+
+### 📋 O que é testado?
+
+1. **Autenticação JWT**: Login de usuários e geração do token JWT.
+2. **Senha Temporária**: Fluxo obrigatório de troca de senha no primeiro login.
+3. **RBAC (Role-Based Access Control)**: Restrições de rotas com base no cargo (ex: apenas `admin` pode criar usuários).
+4. **Ciclo de vida do Caixa (CaixaSession)**: Abertura, fechamento e validação de sessão ativa de caixa.
+5. **Atas de Incidentes**: Registro eletrônico de incidentes e consultas de assinantes.
+6. **Sincronização em Lote (`/sync`)**: Sincronização e mesclagem de todas as entidades (Clientes, Produtos, Categorias, Pedidos, Usuários, Sessões de Caixa e Incidentes) enviadas offline pelo app mobile.
+
+### 🚀 Como executar os testes
+
+Os testes são executados localmente utilizando o ambiente virtual (`venv`) da aplicação.
+
+#### Executar a Suíte de Testes
+
+Para rodar os testes garantindo que o diretório raiz está no caminho de importação (`PYTHONPATH`), execute:
+
+```bash
+python -m pytest tests/
+```
+
+Ou definindo a variável de ambiente `PYTHONPATH` diretamente:
+
+**Windows (PowerShell):**
+```powershell
+$env:PYTHONPATH="."
+pytest tests/
+```
+
+**Linux / macOS:**
+```bash
+PYTHONPATH=. pytest tests/
+```
+
+> [!NOTE]
+> Os testes utilizam um banco de dados SQLite em memória (`sqlite:///:memory:`) configurado com `StaticPool` para isolamento total dos testes, garantindo que a execução dos testes não afete o seu banco de dados PostgreSQL local ou do Docker.

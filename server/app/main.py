@@ -5,6 +5,9 @@ from app.core.database import init_db
 from app.clients.router import router as clients_router
 from app.products.router import router as products_router
 from app.orders.router import router as orders_router
+from app.users.router import router as users_router
+from app.sessions.router import router as sessions_router
+from app.incidents.router import router as incidents_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -29,6 +32,9 @@ app.add_middleware(
 )
 
 # Registra as rotas
+app.include_router(users_router)
+app.include_router(sessions_router)
+app.include_router(incidents_router)
 app.include_router(clients_router)
 app.include_router(products_router)
 app.include_router(orders_router)

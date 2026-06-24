@@ -20,7 +20,8 @@ O projeto é dividido nas seguintes frentes:
 
 ## 📖 Documentação Geral
 
-Acesse a documentação específica de cada módulo para instruções detalhadas de configuração, execução de comandos e arquitetura:
+Acesse a documentação do projeto para entender os fluxos de acesso, configuração e execução de comandos:
 
-**Frontend**: [client/README.md](client/README.md)  
-**Backend**: [server/README.md](server/README.md)
+* 📱 **Módulo Frontend (Cliente)**: [client/README.md](client/README.md)
+* ⚙️ **Módulo Backend (Servidor)**: [server/README.md](server/README.md)
+* 🔑 **Guia de Primeiro Acesso**: [docs/primeiro_acesso.md](docs/primeiro_acesso.md)

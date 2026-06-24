@@ -48,7 +48,11 @@ def process_single_order(order_input: OrderInput, session: Session) -> str:
         clientId=order_input.clientId,
         clientName=order_input.clientName,
         total=order_input.total,
+        discount=order_input.discount,
+        shippingCost=order_input.shippingCost,
         status=order_input.status,
+        salespersonId=order_input.salespersonId,
+        salespersonName=order_input.salespersonName,
         date=order_input.date
     )
     session.add(new_order)
