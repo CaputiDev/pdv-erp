@@ -59,7 +59,7 @@ export default function Clients() {
       // Update existing client
       const updatedClients = clients.map((c) =>
         c.id === editingClient.id
-          ? { ...c, ...clientData }
+          ? { ...c, ...clientData, synced: false }
           : c
       );
       setClients(updatedClients);
@@ -72,7 +72,8 @@ export default function Clients() {
       // Create new client
       const newClient: Client = {
         id: generateUniqueUUID(clients.map((c) => c.id)),
-        ...clientData
+        ...clientData,
+        synced: false
       };
       setClients([...clients, newClient]);
       Toast.show({

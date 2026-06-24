@@ -22,6 +22,26 @@ def process_single_order(order_input: OrderInput, session: Session) -> str:
     # 1. Idempotência: verificar se o pedido já existe
     db_order = session.get(Order, order_input.id)
     if db_order:
+        if db_order.status == "pendente" and order_input.status == "concluido":
+            # Atualizar status do pedido
+            db_order.status = "concluido"
+            session.add(db_order)
+            # Atualizar estoque dos produtos
+            for item in order_input.items:
+                db_product = session.get(Product, item.productId)
+                if not db_product:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Produto com ID {item.productId} não encontrado"
+                    )
+                if db_product.stock < item.quantity:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Estoque insuficiente para o produto '{db_product.name}'. Disponível: {db_product.stock}, Solicitado: {item.quantity}"
+                    )
+                db_product.stock -= item.quantity
+                session.add(db_product)
+            session.flush()
         return db_order.id
 
     # 2. Criar ou verificar cliente

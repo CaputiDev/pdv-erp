@@ -125,6 +125,7 @@ export function useOrdersManager() {
       total,
       status,
       date: new Date().toISOString(),
+      synced: false
     };
 
     setOrders([...orders, newOrder]);
@@ -151,7 +152,7 @@ export function useOrdersManager() {
       return item ? { ...p, stock: p.stock - item.quantity } : p;
     }));
 
-    setOrders(orders.map((o) => o.id === orderId ? { ...o, status: "concluido" } : o));
+    setOrders(orders.map((o) => o.id === orderId ? { ...o, status: "concluido", synced: false } : o));
     Toast.show({ type: "success", text1: "Sucesso", text2: "Pedido concluído com sucesso!" });
   };
 

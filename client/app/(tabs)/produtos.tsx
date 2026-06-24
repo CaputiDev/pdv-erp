@@ -56,7 +56,7 @@ export default function Products() {
       // Update product
       const updatedProducts = products.map((p) =>
         p.id === editingProduct.id
-          ? { ...p, ...productData }
+          ? { ...p, ...productData, synced: false }
           : p
       );
       setProducts(updatedProducts);
@@ -69,7 +69,8 @@ export default function Products() {
       // Create product
       const newProduct: Product = {
         id: generateUniqueUUID(products.map((p) => p.id)),
-        ...productData
+        ...productData,
+        synced: false
       };
       setProducts([...products, newProduct]);
       Toast.show({
