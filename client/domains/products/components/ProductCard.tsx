@@ -1,15 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { AlertTriangle, Edit, Trash2 } from "lucide-react-native";
+import { AlertTriangle, Edit } from "lucide-react-native";
 import { Product } from "../types";
 
 interface ProductCardProps {
   product: Product;
   onEdit: (product: Product) => void;
-  onDelete?: (product: Product) => void;
 }
 
-export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
+export function ProductCard({ product, onEdit }: ProductCardProps) {
   const isLowStock = product.stock <= product.criticalStock;
 
   const formattedPrice = new Intl.NumberFormat("pt-BR", {
@@ -46,23 +45,13 @@ export function ProductCard({ product, onEdit, onDelete }: ProductCardProps) {
         )}
       </View>
 
-      <View className="flex-row gap-2">
-        <TouchableOpacity
-          onPress={() => onDelete && onDelete(product)}
-          activeOpacity={0.7}
-          className="p-2.5 bg-destructive/10 rounded-xl"
-        >
-          <Trash2 className="text-destructive" size={16} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onEdit(product)}
-          activeOpacity={0.7}
-          className="p-2.5 bg-muted/40 rounded-xl"
-        >
-          <Edit className="text-muted-foreground" size={16} />
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        onPress={() => onEdit(product)}
+        activeOpacity={0.7}
+        className="p-2.5 bg-muted/40 rounded-xl"
+      >
+        <Edit className="text-muted-foreground" size={16} />
+      </TouchableOpacity>
     </View>
   );
 }

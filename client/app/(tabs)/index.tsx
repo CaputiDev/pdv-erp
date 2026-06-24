@@ -96,8 +96,7 @@ export default function Dashboard() {
     },
   ];
 
-  const [localClients] = useLocalStorage<any[]>("clients", []);
-  const [localProducts] = useLocalStorage<any[]>("products", []);
+  const { clients: localClients, products: localProducts } = useSync();
 
   stats[2].value = localClients.length.toString();
   stats[3].value = localProducts.length.toString();

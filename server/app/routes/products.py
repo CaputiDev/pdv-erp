@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
-from sqlalchemy.exc import IntegrityError
 from app.database import get_session
 from app.models import Product
 
@@ -31,22 +30,4 @@ def create_or_update_product(product: Product, session: Session = Depends(get_se
         session.refresh(product)
         return product
 
-@router.delete("/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(product_id: str, session: Session = Depends(get_session)):
-    db_product = session.get(Product, product_id)
-    if not db_product:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Produto não encontrado"
-        )
-    try:
-        session.delete(db_product)
-        session.commit()
-    except IntegrityError:
-        session.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Não é possível excluir o produto pois ele está associado a um ou mais pedidos."
-        )
-    return
 

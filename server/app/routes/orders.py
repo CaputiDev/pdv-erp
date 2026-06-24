@@ -92,6 +92,7 @@ def create_order(order_input: OrderInput, session: Session = Depends(get_session
 
 @router.post("/sync", response_model=SyncResponse)
 def sync_data(payload: SyncPayload, session: Session = Depends(get_session)):
+    import logging
     synced_clients = []
     synced_products = []
     synced_orders = []
@@ -109,7 +110,8 @@ def sync_data(payload: SyncPayload, session: Session = Depends(get_session)):
                 else:
                     session.add(client)
             synced_clients.append(client.id)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Erro ao sincronizar cliente {client.id}: {str(e)}", exc_info=True)
             continue
 
     # 2. Sincronizar Produtos (Upsert individual)
@@ -125,7 +127,8 @@ def sync_data(payload: SyncPayload, session: Session = Depends(get_session)):
                 else:
                     session.add(product)
             synced_products.append(product.id)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Erro ao sincronizar produto {product.id}: {str(e)}", exc_info=True)
             continue
 
     session.flush()
@@ -136,7 +139,8 @@ def sync_data(payload: SyncPayload, session: Session = Depends(get_session)):
             with session.begin_nested():
                 order_id = process_single_order(order, session)
             synced_orders.append(order_id)
-        except Exception:
+        except Exception as e:
+            logging.error(f"Erro ao sincronizar pedido {order.id}: {str(e)}", exc_info=True)
             continue
 
     session.commit()
@@ -146,3 +150,4 @@ def sync_data(payload: SyncPayload, session: Session = Depends(get_session)):
         synced_products=synced_products,
         synced_orders=synced_orders
     )
+

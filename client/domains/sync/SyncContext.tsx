@@ -21,10 +21,12 @@ interface SyncContextType {
   handleSync: () => Promise<void>;
   isSyncCardExpanded: boolean;
   setIsSyncCardExpanded: React.Dispatch<React.SetStateAction<boolean>>;
-  deletedClientIds: string[];
-  setDeletedClientIds: React.Dispatch<React.SetStateAction<string[]>>;
-  deletedProductIds: string[];
-  setDeletedProductIds: React.Dispatch<React.SetStateAction<string[]>>;
+  clients: Client[];
+  setClients: (value: Client[] | ((val: Client[]) => Client[])) => void;
+  products: Product[];
+  setProducts: (value: Product[] | ((val: Product[]) => Product[])) => void;
+  orders: Order[];
+  setOrders: (value: Order[] | ((val: Order[]) => Order[])) => void;
 }
 
 const SyncContext = createContext<SyncContextType | undefined>(undefined);
@@ -37,9 +39,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   const defaultBackendUrl = Platform.OS === 'android' ? 'http://10.0.2.2:8000' : 'http://localhost:8000';
   const [backendUrl, setBackendUrl] = useLocalStorage<string>("backend_url", defaultBackendUrl);
   const [lastSync, setLastSync] = useLocalStorage<string | null>("last_sync", null);
-
-  const [deletedClientIds, setDeletedClientIds] = useLocalStorage<string[]>("deleted_client_ids", []);
-  const [deletedProductIds, setDeletedProductIds] = useLocalStorage<string[]>("deleted_product_ids", []);
 
   const [connectionStatus, setConnectionStatus] = useState<"checking" | "online" | "offline">("checking");
   const [isSyncing, setIsSyncing] = useState(false);
@@ -106,36 +105,6 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setConnectionStatus("online");
-
-      // 1. Enviar exclusões pendentes de clientes
-      const remainingDeletedClients = [...deletedClientIds];
-      for (const id of deletedClientIds) {
-        try {
-          const deleteRes = await fetch(`${backendUrl}/clientes/${id}`, { method: "DELETE" });
-          if (deleteRes.ok || deleteRes.status === 404) {
-            const idx = remainingDeletedClients.indexOf(id);
-            if (idx > -1) remainingDeletedClients.splice(idx, 1);
-          }
-        } catch (e) {
-          console.error(`Erro ao sincronizar exclusão do cliente ${id}:`, e);
-        }
-      }
-      setDeletedClientIds(remainingDeletedClients);
-
-      // 2. Enviar exclusões pendentes de produtos
-      const remainingDeletedProducts = [...deletedProductIds];
-      for (const id of deletedProductIds) {
-        try {
-          const deleteRes = await fetch(`${backendUrl}/produtos/${id}`, { method: "DELETE" });
-          if (deleteRes.ok || deleteRes.status === 404) {
-            const idx = remainingDeletedProducts.indexOf(id);
-            if (idx > -1) remainingDeletedProducts.splice(idx, 1);
-          }
-        } catch (e) {
-          console.error(`Erro ao sincronizar exclusão do produto ${id}:`, e);
-        }
-      }
-      setDeletedProductIds(remainingDeletedProducts);
 
       const payload = {
         clients: pendingClients.map(({ synced, ...rest }) => rest),
@@ -217,15 +186,49 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Limpeza de dados de teste antigos ("string") que possam estar no Local Storage local
+  useEffect(() => {
+    let clientsChanged = false;
+    let productsChanged = false;
+    let ordersChanged = false;
+
+    const cleanedClients = clients.filter(c => {
+      if (c.id === "string") {
+        clientsChanged = true;
+        return false;
+      }
+      return true;
+    });
+
+    const cleanedProducts = products.filter(p => {
+      if (p.id === "string") {
+        productsChanged = true;
+        return false;
+      }
+      return true;
+    });
+
+    const cleanedOrders = orders.filter(o => {
+      if (o.id === "string" || o.clientId === "string" || o.items.some(i => i.productId === "string")) {
+        ordersChanged = true;
+        return false;
+      }
+      return true;
+    });
+
+    if (clientsChanged) setClients(cleanedClients);
+    if (productsChanged) setProducts(cleanedProducts);
+    if (ordersChanged) setOrders(cleanedOrders);
+  }, [clients, products, orders]);
+
   useEffect(() => {
     if (connectionStatus === "online" && !isSyncing) {
       const hasPendingSync = clients.some(c => !c.synced) || products.some(p => !p.synced) || orders.some(o => !o.synced);
-      const hasPendingDeletions = deletedClientIds.length > 0 || deletedProductIds.length > 0;
-      if (hasPendingSync || hasPendingDeletions) {
+      if (hasPendingSync) {
         handleSync();
       }
     }
-  }, [clients, products, orders, deletedClientIds, deletedProductIds, connectionStatus, isSyncing]);
+  }, [clients, products, orders, connectionStatus, isSyncing]);
 
   return (
     <SyncContext.Provider value={{
@@ -240,8 +243,9 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
       verifyConnection,
       handleSync,
       isSyncCardExpanded, setIsSyncCardExpanded,
-      deletedClientIds, setDeletedClientIds,
-      deletedProductIds, setDeletedProductIds
+      clients, setClients,
+      products, setProducts,
+      orders, setOrders
     }}>
       {children}
     </SyncContext.Provider>

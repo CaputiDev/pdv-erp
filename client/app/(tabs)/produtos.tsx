@@ -18,13 +18,12 @@ import { useSync } from "../../domains/sync/SyncContext";
 import { generateUniqueUUID } from "../../utils/uuid";
 
 export default function Products() {
-  const [products, setProducts] = useLocalStorage<Product[]>("products", []);
+  const { products, setProducts } = useSync();
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState<"todos" | "critico" | "com_codigo">("todos");
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  const { backendUrl, connectionStatus, setDeletedProductIds } = useSync();
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch =
@@ -45,67 +44,7 @@ export default function Products() {
     setShowModal(true);
   };
 
-  const handleDeleteProduct = (product: Product) => {
-    const performDelete = async () => {
-      // 1. Remover localmente
-      const updatedProducts = products.filter((p) => p.id !== product.id);
-      setProducts(updatedProducts);
 
-      // 2. Se estava sincronizado, tratar backend
-      if (product.synced) {
-        if (connectionStatus === "online") {
-          try {
-            const deleteRes = await fetch(`${backendUrl}/produtos/${product.id}`, {
-              method: "DELETE"
-            });
-            if (deleteRes.ok) {
-              Toast.show({
-                type: 'success',
-                text1: 'Sucesso',
-                text2: 'Produto excluído com sucesso!'
-              });
-              return;
-            } else if (deleteRes.status === 400) {
-              const errData = await deleteRes.json();
-              Toast.show({
-                type: 'error',
-                text1: 'Não foi possível excluir',
-                text2: errData.detail || 'Produto associado a pedidos no servidor.'
-              });
-              // Reverter a exclusão local para manter consistência
-              setProducts([...products]);
-              return;
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
-        // Se falhou por rede ou estava offline, enfileirar exclusão
-        setDeletedProductIds((prev) => [...prev, product.id]);
-      }
-
-      Toast.show({
-        type: 'success',
-        text1: 'Sucesso',
-        text2: 'Produto excluído com sucesso!'
-      });
-    };
-
-    if (Platform.OS === 'web') {
-      if (window.confirm(`Tem certeza que deseja excluir o produto "${product.name}"?`)) {
-        performDelete();
-      }
-    } else {
-      Alert.alert(
-        "Excluir Produto",
-        `Tem certeza que deseja excluir o produto "${product.name}"?`,
-        [
-          { text: "Cancelar", style: "cancel" },
-          { text: "Excluir", style: "destructive", onPress: performDelete }
-        ]
-      );
-    }
-  };
 
   const handleCloseModal = () => {
     setShowModal(false);
@@ -173,7 +112,7 @@ export default function Products() {
           </View>
         }
         renderItem={({ item: product }) => (
-          <ProductCard product={product} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />
+          <ProductCard product={product} onEdit={handleEditProduct} />
         )}
       />
 

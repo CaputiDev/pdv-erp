@@ -6,11 +6,10 @@ import { Client } from "../../clients/types";
 import { Product } from "../../products/types";
 import { Order, CartItem } from "../types";
 import { generateUniqueUUID } from "../../../utils/uuid";
+import { useSync } from "../../sync/SyncContext";
 
 export function useOrdersManager() {
-  const [clients] = useLocalStorage<Client[]>("clients", []);
-  const [products, setProducts] = useLocalStorage<Product[]>("products", []);
-  const [orders, setOrders] = useLocalStorage<Order[]>("orders", []);
+  const { clients, products, setProducts, orders, setOrders } = useSync();
 
   const [activeTab, setActiveTab] = useState<"novo" | "historico">("novo");
   const [step, setStep] = useState<"cliente" | "produtos" | "revisao">("cliente");
