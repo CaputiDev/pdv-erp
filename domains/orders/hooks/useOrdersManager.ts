@@ -40,32 +40,31 @@ export function useOrdersManager() {
   const filteredOrders = orders
     .filter((order) => {
       const matchesSearch = order.clientName.toLowerCase().includes(historySearch.toLowerCase());
-      if (historyFilter === "pendente") {
-        return matchesSearch && order.status === "pendente";
-      }
-      if (historyFilter === "concluido") {
-        return matchesSearch && order.status === "concluido";
-      }
-      return matchesSearch;
+      return matchesSearch && (historyFilter === "todos" || order.status === historyFilter);
     })
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const showConfirm = (title: string, message: string, confirmText: string, onConfirm: () => void) => {
+    if (Platform.OS === "web") {
+      if (window.confirm(message)) onConfirm();
+    } else {
+      Alert.alert(title, message, [
+        { text: "Cancelar", style: "cancel" },
+        { text: confirmText, style: "destructive", onPress: onConfirm }
+      ]);
+    }
+  };
+
   const addToCart = () => {
-    if (!selectedProductId) {
-      Toast.show({ type: 'error', text1: 'Erro', text2: 'Selecione um produto' });
+    const product = products.find((p) => p.id === selectedProductId);
+    if (!product) {
+      Toast.show({ type: "error", text1: "Erro", text2: "Selecione um produto válido" });
       return;
     }
-    const product = products.find((p) => p.id === selectedProductId);
-    if (!product) return;
 
     const qty = parseInt(quantity, 10);
-    if (isNaN(qty) || qty <= 0) {
-      Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade inválida' });
-      return;
-    }
-
-    if (qty > product.stock) {
-      Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade maior que o estoque disponível' });
+    if (isNaN(qty) || qty <= 0 || qty > product.stock) {
+      Toast.show({ type: "error", text1: "Erro", text2: qty <= 0 ? "Quantidade inválida" : "Estoque insuficiente" });
       return;
     }
 
@@ -73,7 +72,7 @@ export function useOrdersManager() {
     if (existingItem) {
       const newQuantity = existingItem.quantity + qty;
       if (newQuantity > product.stock) {
-        Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade total excede o estoque' });
+        Toast.show({ type: "error", text1: "Erro", text2: "Quantidade total excede o estoque" });
         return;
       }
       setCart(cart.map((item) => item.productId === selectedProductId ? { ...item, quantity: newQuantity } : item));
@@ -82,7 +81,7 @@ export function useOrdersManager() {
     }
     setSelectedProductId("");
     setQuantity("1");
-    Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Produto adicionado ao carrinho' });
+    Toast.show({ type: "success", text1: "Sucesso", text2: "Produto adicionado ao carrinho" });
   };
 
   const removeFromCart = (productId: string) => {
@@ -94,25 +93,22 @@ export function useOrdersManager() {
     if (!product) return;
 
     setCart(cart.map((item) => {
-      if (item.productId === productId) {
-        const newQuantity = Math.max(1, item.quantity + delta);
-        if (newQuantity > product.stock) {
-          Toast.show({ type: 'error', text1: 'Erro', text2: 'Quantidade excede o estoque' });
-          return item;
-        }
-        return { ...item, quantity: newQuantity };
+      if (item.productId !== productId) return item;
+      const newQuantity = Math.max(1, item.quantity + delta);
+      if (newQuantity > product.stock) {
+        Toast.show({ type: "error", text1: "Erro", text2: "Quantidade excede o estoque" });
+        return item;
       }
-      return item;
+      return { ...item, quantity: newQuantity };
     }));
   };
 
   const finalizeOrder = () => {
-    if (!selectedClientId || cart.length === 0) {
-      Toast.show({ type: 'error', text1: 'Erro', text2: !selectedClientId ? 'Selecione um cliente' : 'Adicione produtos ao carrinho' });
+    const client = clients.find((c) => c.id === selectedClientId);
+    if (!client || cart.length === 0) {
+      Toast.show({ type: "error", text1: "Erro", text2: !client ? "Selecione um cliente" : "Adicione produtos ao carrinho" });
       return;
     }
-    const client = clients.find((c) => c.id === selectedClientId);
-    if (!client) return;
 
     if (status === "concluido") {
       setProducts(products.map((p) => {
@@ -133,75 +129,44 @@ export function useOrdersManager() {
 
     setOrders([...orders, newOrder]);
     resetOrder();
-    Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido finalizado com sucesso!' });
+    Toast.show({ type: "success", text1: "Sucesso", text2: "Pedido finalizado com sucesso!" });
   };
 
   const completeOrder = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
+    const order = orders.find((o) => o.id === orderId);
     if (!order) return;
 
-    let stockValid = true;
-    const updatedProducts = products.map((p) => {
-      const item = order.items.find((i) => i.productId === p.id);
-      if (item) {
-        if (p.stock < item.quantity) stockValid = false;
-        return { ...p, stock: p.stock - item.quantity };
-      }
-      return p;
+    const insufficientStock = order.items.some((item) => {
+      const p = products.find((prod) => prod.id === item.productId);
+      return !p || p.stock < item.quantity;
     });
 
-    if (!stockValid) {
-      Toast.show({ type: 'error', text1: 'Erro ao concluir', text2: 'Estoque insuficiente para um ou mais produtos' });
+    if (insufficientStock) {
+      Toast.show({ type: "error", text1: "Erro ao concluir", text2: "Estoque insuficiente para um ou mais produtos" });
       return;
     }
 
-    setProducts(updatedProducts);
-    setOrders(orders.map((o) => o.id === orderId ? { ...o, status: "concluido" as const } : o));
-    Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido concluído com sucesso!' });
+    setProducts(products.map((p) => {
+      const item = order.items.find((i) => i.productId === p.id);
+      return item ? { ...p, stock: p.stock - item.quantity } : p;
+    }));
+
+    setOrders(orders.map((o) => o.id === orderId ? { ...o, status: "concluido" } : o));
+    Toast.show({ type: "success", text1: "Sucesso", text2: "Pedido concluído com sucesso!" });
   };
 
   const deleteOrder = (orderId: string) => {
-    if (Platform.OS === "web") {
-      const confirmDelete = window.confirm("Tem certeza que deseja excluir este pedido do histórico?");
-      if (confirmDelete) {
-        setOrders(orders.filter(o => o.id !== orderId));
-        Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido excluído com sucesso!' });
-      }
-    } else {
-      Alert.alert("Excluir Pedido", "Tem certeza que deseja excluir este pedido do histórico?", [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Excluir",
-          style: "destructive",
-          onPress: () => {
-            setOrders(orders.filter(o => o.id !== orderId));
-            Toast.show({ type: 'success', text1: 'Sucesso', text2: 'Pedido excluído com sucesso!' });
-          }
-        }
-      ]);
-    }
+    showConfirm("Excluir Pedido", "Tem certeza que deseja excluir este pedido do histórico?", "Excluir", () => {
+      setOrders(orders.filter((o) => o.id !== orderId));
+      Toast.show({ type: "success", text1: "Sucesso", text2: "Pedido excluído com sucesso!" });
+    });
   };
 
   const cancelOrder = () => {
-    if (Platform.OS === "web") {
-      const confirmCancel = window.confirm("Tem certeza que deseja cancelar este pedido? Todo o progresso será perdido.");
-      if (confirmCancel) {
-        resetOrder();
-        Toast.show({ type: 'info', text1: 'Pedido cancelado' });
-      }
-    } else {
-      Alert.alert("Cancelar Pedido", "Tem certeza que deseja cancelar este pedido? Todo o progresso será perdido.", [
-        { text: "Não", style: "cancel" },
-        {
-          text: "Sim, Cancelar",
-          style: "destructive",
-          onPress: () => {
-            resetOrder();
-            Toast.show({ type: 'info', text1: 'Pedido cancelado' });
-          }
-        }
-      ]);
-    }
+    showConfirm("Cancelar Pedido", "Tem certeza que deseja cancelar este pedido? Todo o progresso será perdido.", "Confirmar Cancelamento", () => {
+      resetOrder();
+      Toast.show({ type: "info", text1: "Pedido cancelado" });
+    });
   };
 
   return {

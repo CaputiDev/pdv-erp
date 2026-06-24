@@ -18,6 +18,8 @@ import { ClientSelectionModal } from "../../domains/clients/components/ClientSel
 import { ProductSelectionModal } from "../../domains/products/components/ProductSelectionModal";
 import { SearchAndFilters } from "../../components/SearchAndFilters";
 
+import { useNavigation } from "expo-router";
+
 export default function Orders() {
   const {
     clients,
@@ -55,13 +57,31 @@ export default function Orders() {
     cancelOrder
   } = useOrdersManager();
 
+  const navigation = useNavigation();
+
+  React.useLayoutEffect(() => {
+    const isOrderInProgress = activeTab === "novo" && !!selectedClientId;
+    
+    navigation.setOptions({
+      tabBarStyle: isOrderInProgress ? { display: "none" } : undefined,
+      headerShown: isOrderInProgress ? false : undefined,
+    });
+
+    return () => {
+      navigation.setOptions({
+        tabBarStyle: undefined,
+        headerShown: undefined,
+      });
+    };
+  }, [navigation, activeTab, selectedClientId]);
+
   return (
     <View className="flex-1 bg-background">
       {/* TAB SWITCHER OR ACTIVE ORDER HEADER */}
       {activeTab === "novo" && selectedClientId ? (
         <View className="flex-row items-center justify-between mx-5 mt-4 pb-2 border-b border-border/40">
           <View className="flex-1 mr-4">
-            <Text className="text-[10px] font-black uppercase text-muted-foreground">Pedido em Andamento</Text>
+            <Text className="text-[8px] font-black uppercase text-muted-foreground">Pedido em Andamento</Text>
             <Text className="text-sm font-extrabold text-foreground" numberOfLines={1}>
               {selectedClient?.name}
             </Text>
@@ -69,9 +89,9 @@ export default function Orders() {
           <TouchableOpacity
             onPress={cancelOrder}
             activeOpacity={0.7}
-            className="px-3 py-1.5 rounded-xl bg-destructive/10 border border-destructive/20"
+            className="px-3 py-1.5 rounded-xl bg-destructive"
           >
-            <Text className="text-xs font-bold text-destructive">Cancelar</Text>
+            <Text className="text-xs font-bold text-white">Cancelar</Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -92,28 +112,23 @@ export default function Orders() {
       )}
 
       {activeTab === "novo" && (
-        <View className="flex-row items-center justify-between px-6 py-4 bg-muted/20 border-b border-border/50">
+        <View className="flex-row items-center justify-between px-6 py-2.5 bg-muted/20 border-b border-border/50">
           {(["cliente", "produtos", "revisao"] as const).map((s, index) => {
+            const stepIndex = step === "cliente" ? 0 : step === "produtos" ? 1 : 2;
+            const isActive = index === stepIndex;
+            const isCompleted = index < stepIndex;
             const label = s === "cliente" ? "Cliente" : s === "produtos" ? "Produtos" : "Revisão";
-            const isActive = step === s;
-            const isCompleted = 
-              (s === "cliente" && (step === "produtos" || step === "revisao")) ||
-              (s === "produtos" && step === "revisao");
 
             return (
               <React.Fragment key={s}>
-                {index > 0 && (
-                  <View className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-primary" : "bg-border/60"}`} />
-                )}
+                {index > 0 && <View className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-primary" : "bg-border/60"}`} />}
                 <View className="flex-row items-center gap-1.5">
                   <View className={`w-6 h-6 rounded-full items-center justify-center ${
                     isActive ? "bg-primary" : isCompleted ? "bg-primary/80" : "bg-muted-foreground/30"
                   }`}>
                     <Text className="text-[10px] font-black text-white">{index + 1}</Text>
                   </View>
-                  <Text className={`text-xs font-bold ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}>
+                  <Text className={`text-xs font-bold ${isActive ? "text-primary" : "text-muted-foreground"}`}>
                     {label}
                   </Text>
                 </View>
@@ -128,12 +143,6 @@ export default function Orders() {
           {step === "cliente" && (
             <View className="flex-1 px-4 py-6 justify-between">
               <View className="gap-6">
-                <View>
-                  <Text className="text-xl font-extrabold text-foreground">Cliente do Pedido</Text>
-                  <Text className="text-sm text-muted-foreground mt-1">
-                    Selecione o cliente que será atendido neste novo pedido.
-                  </Text>
-                </View>
 
                 {selectedClient ? (
                   <View className="bg-card border border-primary/20 rounded-3xl p-6 shadow-sm gap-4">
@@ -148,21 +157,17 @@ export default function Orders() {
                     </View>
 
                     <View className="border-t border-border/60 pt-4 gap-2">
-                      {!!selectedClient.cpf && (
-                        <Text className="text-sm text-muted-foreground">
-                          CPF: <Text className="font-bold text-foreground">{selectedClient.cpf}</Text>
-                        </Text>
-                      )}
-                      {!!selectedClient.phone && (
-                        <Text className="text-sm text-muted-foreground">
-                          Telefone: <Text className="font-bold text-foreground">{selectedClient.phone}</Text>
-                        </Text>
-                      )}
-                      {!!selectedClient.email && (
-                        <Text className="text-sm text-muted-foreground">
-                          E-mail: <Text className="font-bold text-foreground">{selectedClient.email}</Text>
-                        </Text>
-                      )}
+                      {[
+                        { label: "CPF", value: selectedClient.cpf },
+                        { label: "Telefone", value: selectedClient.phone },
+                        { label: "E-mail", value: selectedClient.email }
+                      ]
+                        .filter((item) => !!item.value)
+                        .map((item) => (
+                          <Text key={item.label} className="text-sm text-muted-foreground">
+                            {item.label}: <Text className="font-bold text-foreground">{item.value}</Text>
+                          </Text>
+                        ))}
                     </View>
 
                     <TouchableOpacity
@@ -211,12 +216,6 @@ export default function Orders() {
           {step === "produtos" && (
             <View className="flex-1 justify-between">
               <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100, gap: 20 }}>
-                <View>
-                  <Text className="text-xl font-extrabold text-foreground">Adicionar Produtos</Text>
-                  <Text className="text-sm text-muted-foreground mt-1">
-                    Adicione produtos ao pedido e gerencie a quantidade.
-                  </Text>
-                </View>
 
                 {/* ADD PRODUCT SECTION */}
                 <AddProductSection 
@@ -279,23 +278,21 @@ export default function Orders() {
           {step === "revisao" && (
             <View className="flex-1 justify-between">
               <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 150, gap: 20 }}>
-                <View>
-                  <Text className="text-xl font-extrabold text-foreground">Visão Geral do Pedido</Text>
-                  <Text className="text-sm text-muted-foreground mt-1">
-                    Revise os detalhes e finalize o pedido para simular o pagamento.
-                  </Text>
-                </View>
 
                 {/* Resumo do Cliente */}
                 <View className="bg-card border border-border/80 rounded-3xl p-5 shadow-sm gap-2">
                   <Text className="text-xs font-black uppercase text-muted-foreground">Cliente</Text>
                   <Text className="text-base font-bold text-foreground">{selectedClient?.name}</Text>
-                  {selectedClient?.cpf && (
-                    <Text className="text-xs text-muted-foreground mt-0.5">CPF: {selectedClient.cpf}</Text>
-                  )}
-                  {selectedClient?.phone && (
-                    <Text className="text-xs text-muted-foreground mt-0.5">Telefone: {selectedClient.phone}</Text>
-                  )}
+                  {[
+                    { label: "CPF", value: selectedClient?.cpf },
+                    { label: "Telefone", value: selectedClient?.phone }
+                  ]
+                    .filter((item) => !!item.value)
+                    .map((item) => (
+                      <Text key={item.label} className="text-xs text-muted-foreground mt-0.5">
+                        {item.label}: {item.value}
+                      </Text>
+                    ))}
                 </View>
 
                 {/* Resumo dos Itens */}
