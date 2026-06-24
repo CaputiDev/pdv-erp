@@ -1,12 +1,19 @@
-import { Tabs } from 'expo-router';
-import { Home, Users, Package, ShoppingCart } from 'lucide-react-native';
+import { Tabs, router } from 'expo-router';
+import { Home, Users, Package, ShoppingCart, Cloud } from 'lucide-react-native';
+import { TouchableOpacity, View } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useSync } from '../../domains/sync/SyncContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { connectionStatus, totalPending, isSyncCardExpanded, setIsSyncCardExpanded } = useSync();
+
+  // Mostrar bolinha se o servidor estiver caído (vermelho) ou se houver itens desincronizados (laranja)
+  const showBadge = connectionStatus === "offline" || totalPending > 0;
+  const badgeColor = connectionStatus === "offline" ? "bg-destructive" : "bg-amber-500";
 
   return (
     <Tabs
@@ -17,6 +24,21 @@ export default function TabLayout() {
         headerShown: useClientOnlyValue(false, true),
         headerTitle: 'Sistema de Gestão',
         headerTitleAlign: 'center',
+        headerRight: () => (
+          <TouchableOpacity
+            onPress={() => {
+              router.push('/');
+              setIsSyncCardExpanded(prev => !prev);
+            }}
+            activeOpacity={0.7}
+            style={{ marginRight: 16, position: 'relative' }}
+          >
+            <Cloud color={Colors[colorScheme].text} size={24} />
+            {showBadge && (
+              <View className={`absolute -top-1 -right-1.5 w-3 h-3 rounded-full border border-background ${badgeColor}`} />
+            )}
+          </TouchableOpacity>
+        ),
       }}>
       <Tabs.Screen
         name="index"

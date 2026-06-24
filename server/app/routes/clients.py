@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 from typing import List
+from sqlalchemy.exc import IntegrityError
 from app.database import get_session
 from app.models import Client
 
@@ -29,3 +30,23 @@ def create_or_update_client(client: Client, session: Session = Depends(get_sessi
         session.commit()
         session.refresh(client)
         return client
+
+@router.delete("/{client_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_client(client_id: str, session: Session = Depends(get_session)):
+    db_client = session.get(Client, client_id)
+    if not db_client:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Cliente não encontrado"
+        )
+    try:
+        session.delete(db_client)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é possível excluir o cliente pois ele possui pedidos associados."
+        )
+    return
+

@@ -5,6 +5,7 @@ import { useLocalStorage } from "../../../hooks/useLocalStorage";
 import { Client } from "../../clients/types";
 import { Product } from "../../products/types";
 import { Order, CartItem } from "../types";
+import { generateUniqueUUID } from "../../../utils/uuid";
 
 export function useOrdersManager() {
   const [clients] = useLocalStorage<Client[]>("clients", []);
@@ -118,7 +119,7 @@ export function useOrdersManager() {
     }
 
     const newOrder: Order = {
-      id: Date.now().toString(),
+      id: generateUniqueUUID(orders.map((o) => o.id)),
       clientId: client.id,
       clientName: client.name,
       items: cart,

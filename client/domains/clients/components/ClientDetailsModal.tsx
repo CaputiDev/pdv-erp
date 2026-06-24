@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { Phone, Mail, MapPin, Edit3, User } from "lucide-react-native";
+import { Phone, Mail, MapPin, Edit3, User, Trash2 } from "lucide-react-native";
 import { BaseModal } from "../../../components/BaseModal";
 import { Client } from "../types";
 
@@ -9,9 +9,10 @@ interface ClientDetailsModalProps {
   onClose: () => void;
   client: Client | null;
   onEdit: () => void;
+  onDelete?: () => void;
 }
 
-export function ClientDetailsModal({ visible, onClose, client, onEdit }: ClientDetailsModalProps) {
+export function ClientDetailsModal({ visible, onClose, client, onEdit, onDelete }: ClientDetailsModalProps) {
   if (!client) return null;
 
   return (
@@ -76,17 +77,30 @@ export function ClientDetailsModal({ visible, onClose, client, onEdit }: ClientD
         </View>
 
         {/* Actions section */}
-        <TouchableOpacity
-          onPress={() => {
-            onClose();
-            onEdit();
-          }}
-          activeOpacity={0.7}
-          className="flex-row items-center justify-center bg-primary py-3 rounded-2xl gap-2 mt-2 shadow-sm"
-        >
-          <Edit3 color="white" size={16} />
-          <Text className="text-primary-foreground font-bold text-sm">Editar Cliente</Text>
-        </TouchableOpacity>
+        <View className="gap-2 mt-2">
+          <TouchableOpacity
+            onPress={() => {
+              onClose();
+              onEdit();
+            }}
+            activeOpacity={0.7}
+            className="flex-row items-center justify-center bg-primary py-3 rounded-2xl gap-2 shadow-sm"
+          >
+            <Edit3 color="white" size={16} />
+            <Text className="text-primary-foreground font-bold text-sm">Editar Cliente</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              onDelete && onDelete();
+            }}
+            activeOpacity={0.7}
+            className="flex-row items-center justify-center bg-destructive/10 border border-destructive/20 py-3 rounded-2xl gap-2"
+          >
+            <Trash2 className="text-destructive" size={16} />
+            <Text className="text-destructive font-bold text-sm">Excluir Cliente</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </BaseModal>
   );

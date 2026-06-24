@@ -3,7 +3,9 @@ import {
   View, 
   Text, 
   FlatList, 
-  TouchableOpacity 
+  TouchableOpacity,
+  Alert,
+  Platform
 } from "react-native";
 import { Plus, User } from "lucide-react-native";
 import { SearchAndFilters } from "../../components/SearchAndFilters";
@@ -13,6 +15,8 @@ import { Client } from "../../domains/clients/types";
 import { ClientCard } from "../../domains/clients/components/ClientCard";
 import { ClientFormModal } from "../../domains/clients/components/ClientFormModal";
 import { ClientDetailsModal } from "../../domains/clients/components/ClientDetailsModal";
+import { useSync } from "../../domains/sync/SyncContext";
+import { generateUniqueUUID } from "../../utils/uuid";
 
 export default function Clients() {
   const [clients, setClients] = useLocalStorage<Client[]>("clients", []);
@@ -21,6 +25,8 @@ export default function Clients() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [selectedDetailClient, setSelectedDetailClient] = useState<Client | null>(null);
+
+  const { backendUrl, connectionStatus, setDeletedClientIds } = useSync();
 
   const filteredClients = clients.filter((client) => {
     const matchesSearch =
@@ -45,6 +51,71 @@ export default function Clients() {
     setShowModal(true);
   };
 
+  const handleDeleteClient = (client: Client) => {
+    const performDelete = async () => {
+      // 1. Fechar detalhes
+      setSelectedDetailClient(null);
+
+      // 2. Remover localmente
+      const updatedClients = clients.filter((c) => c.id !== client.id);
+      setClients(updatedClients);
+
+      // 3. Se estava sincronizado, tratar backend
+      if (client.synced) {
+        if (connectionStatus === "online") {
+          try {
+            const deleteRes = await fetch(`${backendUrl}/clientes/${client.id}`, {
+              method: "DELETE"
+            });
+            if (deleteRes.ok) {
+              Toast.show({
+                type: 'success',
+                text1: 'Sucesso',
+                text2: 'Cliente excluído com sucesso!'
+              });
+              return;
+            } else if (deleteRes.status === 400) {
+              const errData = await deleteRes.json();
+              Toast.show({
+                type: 'error',
+                text1: 'Não foi possível excluir',
+                text2: errData.detail || 'Cliente associado a pedidos no servidor.'
+              });
+              // Reverter exclusão local para consistência
+              setClients([...clients]);
+              return;
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        // Se offline ou falha de rede, enfileirar exclusão
+        setDeletedClientIds((prev) => [...prev, client.id]);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Sucesso',
+        text2: 'Cliente excluído com sucesso!'
+      });
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Tem certeza que deseja excluir o cliente "${client.name}"?`)) {
+        performDelete();
+      }
+    } else {
+      Alert.alert(
+        "Excluir Cliente",
+        `Tem certeza que deseja excluir o cliente "${client.name}"?`,
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "Excluir", style: "destructive", onPress: performDelete }
+        ]
+      );
+    }
+  };
+
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingClient(null);
@@ -67,7 +138,7 @@ export default function Clients() {
     } else {
       // Create new client
       const newClient: Client = {
-        id: Date.now().toString(),
+        id: generateUniqueUUID(clients.map((c) => c.id)),
         ...clientData
       };
       setClients([...clients, newClient]);
@@ -138,6 +209,11 @@ export default function Clients() {
         onEdit={() => {
           if (selectedDetailClient) {
             handleEditClient(selectedDetailClient);
+          }
+        }}
+        onDelete={() => {
+          if (selectedDetailClient) {
+            handleDeleteClient(selectedDetailClient);
           }
         }}
       />
