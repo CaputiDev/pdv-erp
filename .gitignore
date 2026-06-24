@@ -34,6 +34,9 @@ Thumbs.db
 /ios/
 /android/
 .vscode/
+plan_back
+planning.md
+relatorio.md
 .idea/
 *.suo
 *.ntvs*
@@ -42,6 +45,3 @@ Thumbs.db
 *.sw?
 package-lock.json
 yarn.lock
-
-planning.md
-relatorio.md
