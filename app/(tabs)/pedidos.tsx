@@ -5,7 +5,8 @@ import {
   TouchableOpacity, 
   FlatList, 
   ScrollView, 
-  SafeAreaView 
+  SafeAreaView,
+  Animated
 } from "react-native";
 import { ShoppingCart, User, ArrowRight, ArrowLeft } from "lucide-react-native";
 import { useOrdersManager } from "../../domains/orders/hooks/useOrdersManager";
@@ -58,6 +59,10 @@ export default function Orders() {
   } = useOrdersManager();
 
   const navigation = useNavigation();
+  const [coords, setCoords] = React.useState<number[]>([]);
+  const animX = React.useRef(new Animated.Value(0)).current;
+
+  const stepIndex = step === "cliente" ? 0 : step === "produtos" ? 1 : 2;
 
   React.useLayoutEffect(() => {
     const isOrderInProgress = activeTab === "novo" && !!selectedClientId;
@@ -74,6 +79,26 @@ export default function Orders() {
       });
     };
   }, [navigation, activeTab, selectedClientId]);
+
+  React.useEffect(() => {
+    const targetX = coords[stepIndex];
+    if (targetX !== undefined) {
+      Animated.timing(animX, {
+        toValue: targetX,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [stepIndex, coords]);
+
+  const handleCircleLayout = (index: number) => (event: any) => {
+    const { x } = event.nativeEvent.layout;
+    setCoords((prev) => {
+      const next = [...prev];
+      next[index] = x;
+      return next;
+    });
+  };
 
   return (
     <View className="flex-1 bg-background">
@@ -112,9 +137,25 @@ export default function Orders() {
       )}
 
       {activeTab === "novo" && (
-        <View className="flex-row items-center justify-between px-6 py-2.5 bg-muted/20 border-b border-border/50">
+        <View style={{ position: "relative" }} className="flex-row items-center justify-between px-6 py-2.5 bg-muted/20 border-b border-border/50">
+          {coords[stepIndex] !== undefined && (
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                left: 0,
+                top: "50%",
+                marginTop: -12,
+                transform: [{ translateX: animX }],
+                width: 24,
+                height: 24,
+                zIndex: 10,
+              }}
+              className="border-2 border-primary rounded-full"
+            />
+          )}
+
           {(["cliente", "produtos", "revisao"] as const).map((s, index) => {
-            const stepIndex = step === "cliente" ? 0 : step === "produtos" ? 1 : 2;
             const isActive = index === stepIndex;
             const isCompleted = index < stepIndex;
             const label = s === "cliente" ? "Cliente" : s === "produtos" ? "Produtos" : "Revisão";
@@ -122,11 +163,14 @@ export default function Orders() {
             return (
               <React.Fragment key={s}>
                 {index > 0 && <View className={`flex-1 h-0.5 mx-2 ${isCompleted ? "bg-primary" : "bg-border/60"}`} />}
-                <View className="flex-row items-center gap-1.5">
-                  <View className={`w-6 h-6 rounded-full items-center justify-center ${
-                    isActive ? "bg-primary" : isCompleted ? "bg-primary/80" : "bg-muted-foreground/30"
-                  }`}>
-                    <Text className="text-[10px] font-black text-white">{index + 1}</Text>
+                <View 
+                  onLayout={handleCircleLayout(index)}
+                  className="flex-row items-center gap-1.5"
+                >
+                  <View className="w-6 h-6 rounded-full border border-border/80 items-center justify-center bg-card">
+                    <Text className={`text-[10px] font-black ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                      {index + 1}
+                    </Text>
                   </View>
                   <Text className={`text-xs font-bold ${isActive ? "text-primary" : "text-muted-foreground"}`}>
                     {label}
