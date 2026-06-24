@@ -6,11 +6,15 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localho
 engine = create_engine(DATABASE_URL, echo=True)
 
 def init_db():
+    # Garantir que o SQLModel conheça todos os modelos antes de chamar create_all
+    from app.clients.models import Client
+    from app.products.models import Product
+    from app.orders.models import Order, OrderItem
+    
     SQLModel.metadata.create_all(engine)
     
     # Garantir que o banco inicie sem dados de teste ("string") residuais
     from sqlmodel import select
-    from app.models import Client, Product, Order, OrderItem
     
     with Session(engine) as session:
         try:

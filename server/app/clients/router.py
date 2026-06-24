@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from typing import List
-from app.database import get_session
-from app.models import Client
+from app.core.database import get_session
+from app.clients.models import Client
 
 router = APIRouter(prefix="/clientes", tags=["Clientes"])
 
@@ -29,5 +29,3 @@ def create_or_update_client(client: Client, session: Session = Depends(get_sessi
         session.commit()
         session.refresh(client)
         return client
-
-

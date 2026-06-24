@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from typing import List
-from app.database import get_session
-from app.models import Product
+from app.core.database import get_session
+from app.products.models import Product
 
 router = APIRouter(prefix="/produtos", tags=["Produtos"])
 
@@ -29,5 +29,3 @@ def create_or_update_product(product: Product, session: Session = Depends(get_se
         session.commit()
         session.refresh(product)
         return product
-
-
